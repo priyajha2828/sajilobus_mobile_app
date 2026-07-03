@@ -7,7 +7,7 @@ class SplashScreenProvider extends ChangeNotifier{
   bool get isLoading =>_isLoading;
 
   Future<void> startSplash() async{
-    await Future.delayed(const Duration(seconds :10));
+    await Future.delayed(const Duration(seconds :5));
 
     _isLoading = false;
     notifyListeners();
