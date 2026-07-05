@@ -98,43 +98,29 @@ class SignUpPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               TextFromFieldWithPrefixSuffix(
-                                controller: provider.emailController,
+                                controller: provider.nameController,
                                 hintText: "Enter your Name",
                                 borderRadius: 4.0,
                                 applyPrefix: false,
-                                keyboardType: TextInputType.emailAddress,
-                                enabledBorderColor: provider.emailError == null
+                                keyboardType: TextInputType.name,
+                                enabledBorderColor: provider.nameError == null
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
-                                focusedBorderColor: provider.emailError == null
+                                focusedBorderColor: provider.nameError == null
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
                                 errorBorderColor: Colors.red,
                                 validator: (value) => null,
-                                obscureText: true,
+                                obscureText: false,
                               ),
-                              if (provider.emailError != null) ...[
+                              if (provider.nameError != null) ...[
                                 const SizedBox(height: 6),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.warning,
-                                      color: Colors.red,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        provider.emailError!,
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                Text(
+                                  provider.nameError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                               const SizedBox(height: 16),
@@ -171,30 +157,37 @@ class SignUpPage extends StatelessWidget {
                                     : Colors.red.shade800,
                                 errorBorderColor: Colors.red,
                                 validator: (value) => null,
-                                obscureText: true,
+                                obscureText: false,
                               ),
                               if (provider.emailError != null) ...[
                                 const SizedBox(height: 6),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.warning,
-                                      color: Colors.red,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        provider.emailError!,
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                // Row(
+                                //   crossAxisAlignment: CrossAxisAlignment.center,
+                                //   children: [
+                                //     const Icon(
+                                //       Icons.warning,
+                                //       color: Colors.red,
+                                //       size: 14,
+                                //     ),
+                                //     const SizedBox(width: 6),
+                                //     Expanded(
+                                //       child: Text(
+                                //         provider.emailError!,
+                                //         style: const TextStyle(
+                                //           color: Colors.red,
+                                //           fontSize: 13,
+                                //           fontWeight: FontWeight.w500,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
+                                Text(
+                                  provider.emailError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                               const SizedBox(height: 8),
@@ -219,43 +212,50 @@ class SignUpPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               TextFromFieldWithPrefixSuffix(
-                                controller: provider.emailController,
+                                controller: provider.phoneController,
                                 hintText: "Enter your phone Number",
                                 borderRadius: 4.0,
                                 applyPrefix: false,
-                                keyboardType: TextInputType.emailAddress,
-                                enabledBorderColor: provider.emailError == null
+                                keyboardType: TextInputType.phone,
+                                enabledBorderColor: provider.phoneError == null
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
-                                focusedBorderColor: provider.emailError == null
+                                focusedBorderColor: provider.phoneError == null
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
                                 errorBorderColor: Colors.red,
                                 validator: (value) => null,
-                                obscureText: true,
+                                obscureText: false,
                               ),
                               if (provider.emailError != null) ...[
-                                const SizedBox(height: 6),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.warning,
-                                      color: Colors.red,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        provider.emailError!,
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                 const SizedBox(height: 6),
+                                // Row(
+                                //   crossAxisAlignment: CrossAxisAlignment.center,
+                                //   children: [
+                                //     const Icon(
+                                //       Icons.warning,
+                                //       color: Colors.red,
+                                //       size: 14,
+                                //     ),
+                                //     const SizedBox(width: 6),
+                                //     Expanded(
+                                //       child: Text(
+                                //         provider.emailError!,
+                                //         style: const TextStyle(
+                                //           color: Colors.red,
+                                //           fontSize: 13,
+                                //           fontWeight: FontWeight.w500,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
+                                Text(
+                                  provider.phoneError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                               const SizedBox(height: 8),
@@ -279,15 +279,15 @@ class SignUpPage extends StatelessWidget {
                               ),
                               const SizedBox(height: 8),
                               TextFromFieldWithPrefixSuffix(
-                                controller: provider.emailController,
+                                controller: provider.passwordController,
                                 hintText: "Enter your password",
                                 borderRadius: 4.0,
                                 applyPrefix: false,
-                                keyboardType: TextInputType.emailAddress,
-                                enabledBorderColor: provider.emailError == null
+                                keyboardType: TextInputType.visiblePassword,
+                                enabledBorderColor: provider.passwordError == null
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
-                                focusedBorderColor: provider.emailError == null
+                                focusedBorderColor: provider.passwordError == null
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
                                 errorBorderColor: Colors.red,
@@ -296,29 +296,94 @@ class SignUpPage extends StatelessWidget {
                               ),
                               if (provider.emailError != null) ...[
                                 const SizedBox(height: 6),
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    const Icon(
-                                      Icons.warning,
-                                      color: Colors.red,
-                                      size: 14,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Expanded(
-                                      child: Text(
-                                        provider.emailError!,
-                                        style: const TextStyle(
-                                          color: Colors.red,
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                // Row(
+                                //   crossAxisAlignment: CrossAxisAlignment.center,
+                                //   children: [
+                                //     const Icon(
+                                //       Icons.warning,
+                                //       color: Colors.red,
+                                //       size: 14,
+                                //     ),
+                                //     const SizedBox(width: 6),
+                                //     Expanded(
+                                //       child: Text(
+                                //         provider.emailError!,
+                                //         style: const TextStyle(
+                                //           color: Colors.red,
+                                //           fontSize: 13,
+                                //           fontWeight: FontWeight.w500,
+                                //         ),
+                                //       ),
+                                //     ),
+                                //   ],
+                                // ),
+                                Text(
+                                  provider.passwordError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 13,
+                                  ),
                                 ),
                               ],
                               const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  Text(
+                                    "Confirm Password",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: CustomColor.tileTextPrimary(context),
+                                    ),
+                                  ),
+                                  const Text(
+                                    "*",
+                                    style: TextStyle(
+                                      color: Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              TextFromFieldWithPrefixSuffix(
+                                controller: provider.confirmPasswordController,
+                                hintText: "Confirm your Password",
+                                borderRadius: 4,
+                                applyPrefix: false,
+                                keyboardType: TextInputType.visiblePassword,
+                                obscureText: provider.obscurePassword,
+                                applySuffixIcon: true,
+                                suffixIcon: IconButton(
+                                  onPressed: provider.togglePassword,
+                                  icon: Icon(
+                                    provider.obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                ),
+                                validator: (value) => null,
+                                enabledBorderColor: provider.confirmPasswordError == null
+                                    ? const Color(0xFF0091EA)
+                                    : Colors.red,
+                                focusedBorderColor: provider.confirmPasswordError == null
+                                    ? const Color(0xFF0091EA)
+                                    : Colors.red,
+                              ),
+
+                              if (provider.confirmPasswordError != null) ...[
+                                const SizedBox(height: 6),
+                                Text(
+                                  provider.confirmPasswordError!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontSize: 13,
+                                  ),
+                                ),
+                              ],
+
+                              const SizedBox(height:8),
                               InkWell(
                                 onTap: () => provider.toggleRememberMe(null),
                                 splashColor: Colors.transparent,
@@ -360,7 +425,19 @@ class SignUpPage extends StatelessWidget {
                               ElevatedButton(
                                 onPressed: provider.isLoading
                                     ? null
-                                    : () => provider.login(),
+                                    : () async {
+                                  bool success = await provider.register();
+                                  if (success) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text("Registration Successful"),
+                                      ),
+                                    );
+
+                                    // Firebase + Dio integration भएपछि
+                                    // यहाँबाट OTP वा Login Page मा जानेछ
+                                  }
+                                },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF0091EA),
                                   foregroundColor: Colors.white,

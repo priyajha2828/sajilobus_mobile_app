@@ -166,17 +166,19 @@ class LoginPage extends StatelessWidget {
 
                               // --- PASSWORD TEXT FIELD ---
                               TextFromFieldWithPrefixSuffix(
-                                // Note: Ensure 'passwordController' exists in AuthProvider
                                 controller: provider.passwordController,
-                                hintText: "Enter your password",
-                                hintTextColor: CustomColor.textMutedLabel(context),
-                                fillColor: CustomColor.card_bg(context),
-                                borderRadius: 4.0,
-                                applyPrefix: false,
-                                obscureText: true, // Assuming your custom field supports obfuscation
-                                enabledBorderColor: const Color(0xFF0091EA),
-                                focusedBorderColor: const Color(0xFF0091EA),
-                                errorBorderColor: Colors.red,
+                                hintText: "Enter Password",
+                                obscureText: provider.obscurePassword,
+                                applySuffixIcon: true,
+                                suffixIcon: IconButton(
+                                  onPressed: provider.togglePassword,
+                                  icon: Icon(
+                                    provider.obscurePassword
+                                        ? Icons.visibility_off
+                                        : Icons.visibility,
+                                  ),
+                                ),
+
                                 validator: (value) => null,
                               ),
                               const SizedBox(height: 16),
@@ -228,7 +230,13 @@ class LoginPage extends StatelessWidget {
                                     : () async {
                                   bool loginSuccess = await provider.login();
                                   if (loginSuccess && context.mounted) {
-                                    // Navigator.pushNamed(context, AppRoute.otp);
+                                    Navigator.pushNamed(context, AppRoute.p_dashboard);
+                                  }else{
+                                    ScaffoldMessenger.of(context).showSnackBar(
+
+                                      const SnackBar(content: Text("login failed"),
+                                      )
+                                    );
                                   }
                                 },
                                 style: ElevatedButton.styleFrom(
