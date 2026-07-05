@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "877718439659",
+    "project_id": "sajilobus-80d0d",
+    "storage_bucket": "sajilobus-80d0d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:877718439659:android:563fcd013b7ba3fdb0e0ae",
+        "android_client_info": {
+          "package_name": "com.example.sajilo_bus"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAUooWcXyhMiWJIZ7Jcg7UNPDjLYlP4Z_I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

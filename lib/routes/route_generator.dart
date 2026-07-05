@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:sajilo_bus/pages/Passenger_pages/passenger_dashboard/passenger_dashboard.dart';
 import 'package:sajilo_bus/pages/auth_pages/loginpage.dart';
 
 import '../pages/auth_pages/signup_page.dart';
@@ -12,6 +13,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_) => const SignUpPage());
       case AppRoute.loginpage:
         return MaterialPageRoute(builder: (_) => const LoginPage());
+      case AppRoute.p_dashboard:
+        return MaterialPageRoute(builder: (_) => const PassengerDashboard());
       default:
         return _errorRoute();
     }

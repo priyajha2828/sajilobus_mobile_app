@@ -12,7 +12,7 @@ class TextFromFieldWithPrefixSuffix extends StatefulWidget {
     required this.validator,
     this.keyboardType = TextInputType.text,
     this.textInputAction,
-    this.obscure = false,
+    this.obscureText = false,
     this.applyPrefix = true,
     this.applySuffixIcon = false,
     this.suffixIcon,
@@ -34,7 +34,7 @@ class TextFromFieldWithPrefixSuffix extends StatefulWidget {
     this.blurAmount = 5.0,
     this.glassOpacity = 0.2,
     this.hintTextColor,
-    required bool obscureText,
+
   });
 
   final bool glassEffect;
@@ -43,7 +43,7 @@ class TextFromFieldWithPrefixSuffix extends StatefulWidget {
   final TextEditingController controller;
   final String? hintText;
   final String? labelText;
-  final bool obscure;
+  final bool obscureText;
   final bool applyPrefix;
   final Widget? prefixIcon;
   final bool applySuffixIcon;
@@ -119,7 +119,7 @@ class _TextFromFieldWithPrefixSuffixState
             keyboardType: widget.keyboardType,
             textInputAction: widget.textInputAction,
             controller: widget.controller,
-            obscureText: widget.obscure,
+            obscureText: widget.obscureText,
             validator: widget.validator,
             autofocus: widget.autoFocus,
             readOnly: widget.readOnly,
