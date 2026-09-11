@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_bus/providers/auth_provider/auth_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/dashboard_provider.dart';
+import 'package:sajilo_bus/providers/driver_provider/issue_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/notifications_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/profile_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/sos_provider.dart';
@@ -34,6 +35,7 @@ void main() async{
         ChangeNotifierProvider(create: (_)=> NotificationsProvider()),
         ChangeNotifierProvider(create: (_)=> DriverProfileProvider()),
         ChangeNotifierProvider(create: (_)=>EmergencyProvider()),
+        ChangeNotifierProvider(create: (_)=> ReportIssueProvider()),
       ],
       child: const MyApp(),
     ),

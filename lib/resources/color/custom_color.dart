@@ -454,4 +454,91 @@ class CustomColor {
 
   /// Text color placed on top of the amber/warning bus-plate badge.
   static const Color onWarning = Colors.black;
+  /// Small red "KOSHI CORRIDOR DISPATCH LINK" pill above the page title.
+  static Color dispatchLinkBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF3B0D0D) : const Color(0xFFFEE2E2);
+
+  static Color dispatchLinkText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFFCA5A5) : danger;
+
+  /// Unselected issue-category tile.
+  static Color categoryTileBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : const Color(0xFFF9FAFB);
+
+  static Color categoryTileBorder(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  static Color categoryTileIcon(BuildContext context) =>
+      isDark(context) ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+
+  /// Selected issue-category tile (e.g. "Mechanical Failure").
+  static Color categorySelectedBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A8A) : const Color(0xFFEAF1FF);
+
+  static Color categorySelectedBorder(BuildContext context) => primary;
+
+  static Color categorySelectedIcon(BuildContext context) => primary;
+
+  /// Severity segmented buttons — unselected state.
+  static Color severityUnselectedBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : const Color(0xFFF3F4F6);
+
+  static Color severityUnselectedText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFD1D5DB) : const Color(0xFF374151);
+
+  /// Selected severity color per level.
+  static const Color severityLow = success;
+  static const Color severityMedium = warning;
+  static const Color severityCritical = danger;
+
+  /// Description text-area footer chip ("Telemetry synced").
+  static Color syncedText(BuildContext context) => success;
+
+  /// Photo attachment placeholder tile (filled thumbnail bg + dashed
+  /// "Add Photo" tile border).
+  static Color photoTileBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  static Color addPhotoBorder(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4B5563) : const Color(0xFFD1D5DB);
+
+  static Color addPhotoIcon(BuildContext context) =>
+      isDark(context) ? const Color(0xFF9CA3AF) : const Color(0xFF9CA3AF);
+
+  /// Remove ("x") button on a photo thumbnail.
+  static const Color removeButtonBg = danger;
+
+  /// High-severity warning banner above the submit button.
+  static Color warningBannerBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF3B0D0D) : const Color(0xFFFEF2F2);
+
+  static Color warningBannerBorder(BuildContext context) =>
+      isDark(context) ? const Color(0xFF7F1D1D) : const Color(0xFFFECACA);
+
+  static Color warningBannerIcon(BuildContext context) => danger;
+
+  static Color warningBannerText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFFCA5A5) : const Color(0xFF991B1B);
+
+  /// Incident tracking stepper.
+  static const Color stepperDone = success;
+  static const Color stepperActive = Color(0xFF2563EB);
+  static Color stepperPending(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4B5563) : const Color(0xFFD1D5DB);
+
+  static Color stepperLine(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  static Color stepperLabelActive(BuildContext context) => stepperActive;
+
+  static Color stepperLabelMuted(BuildContext context) =>
+      isDark(context) ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+
+  /// Ops dispatch message bubble.
+  static Color dispatchMessageBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : const Color(0xFFF9FAFB);
+
+  static Color dispatchAvatarBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
 }

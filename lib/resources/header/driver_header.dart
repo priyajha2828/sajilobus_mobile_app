@@ -132,3 +132,63 @@ class TelemetryHeader extends StatelessWidget {
   }
 }
 
+// Section header used across the app: a bold title on the left and an
+/// optional trailing label/link on the right
+/// (e.g. "Required *", "Affects schedule triage", "Voice Record").
+class SectionHeader1 extends StatelessWidget {
+  final String title;
+  final String? trailingText;
+  final Color? trailingColor;
+  final IconData? trailingIcon;
+  final VoidCallback? onTrailingTap;
+
+  const SectionHeader1({
+    super.key,
+    required this.title,
+    this.trailingText,
+    this.trailingColor,
+    this.trailingIcon,
+    this.onTrailingTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = trailingColor ?? CustomColor.textSecondary(context);
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            title,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+              color: CustomColor.textPrimary(context),
+            ),
+          ),
+        ),
+        if (trailingText != null)
+          InkWell(
+            onTap: onTrailingTap,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (trailingIcon != null) ...[
+                  Icon(trailingIcon, size: 14, color: color),
+                  const SizedBox(width: 4),
+                ],
+                Text(
+                  trailingText!,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: color,
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+}
+

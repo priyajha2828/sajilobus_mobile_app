@@ -1083,4 +1083,171 @@ class TimelineTile extends StatelessWidget {
     );
   }
 }
+// One tile in the "Select Issue Category" grid.
+class CategoryTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const CategoryTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected
+        ? CustomColor.categorySelectedBg(context)
+        : CustomColor.categoryTileBg(context);
+    final border = selected
+        ? CustomColor.categorySelectedBorder(context)
+        : CustomColor.categoryTileBorder(context);
+    final iconColor = selected
+        ? CustomColor.categorySelectedIcon(context)
+        : CustomColor.categoryTileIcon(context);
+    final textColor = selected
+        ? CustomColor.categorySelectedIcon(context)
+        : CustomColor.textPrimary(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border, width: selected ? 1.5 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: textColor,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+/// A captured photo thumbnail with a label and a remove ("x") button.
+class PhotoThumbnailTile extends StatelessWidget {
+  final String label;
+  final VoidCallback onRemove;
+
+  const PhotoThumbnailTile({
+    super.key,
+    required this.label,
+    required this.onRemove,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 84,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 84,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: CustomColor.photoTileBg(context),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.image_outlined,
+                    color: CustomColor.iconMuted(context)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                label,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColor.textSecondary(context),
+                ),
+              ),
+            ],
+          ),
+          Positioned(
+            top: -6,
+            right: -6,
+            child: GestureDetector(
+              onTap: onRemove,
+              child: Container(
+                width: 20,
+                height: 20,
+                decoration: const BoxDecoration(
+                  color: CustomColor.removeButtonBg,
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.close, size: 12, color: CustomColor.onDark),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Dashed placeholder tile the driver taps to add another photo.
+class AddPhotoTile extends StatelessWidget {
+  final VoidCallback onTap;
+
+  const AddPhotoTile({super.key, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(10),
+      onTap: onTap,
+      child: Container(
+        width: 84,
+        height: 64,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: CustomColor.addPhotoBorder(context),
+            style: BorderStyle.solid,
+          ),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.add_a_photo_outlined,
+                size: 18, color: CustomColor.addPhotoIcon(context)),
+            const SizedBox(height: 4),
+            Text(
+              'Add Photo',
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: FontWeight.w600,
+                color: CustomColor.textMutedLabel(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 

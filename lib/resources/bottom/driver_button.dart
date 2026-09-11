@@ -459,3 +459,66 @@ class SosButton extends StatelessWidget {
     );
   }
 }
+/// One segment in the "Severity Level" selector.
+class SeverityButton extends StatelessWidget {
+  final String label;
+  final String? subtitle;
+  final bool selected;
+  final Color selectedColor;
+  final VoidCallback onTap;
+
+  const SeverityButton({
+    super.key,
+    required this.label,
+    required this.selected,
+    required this.selectedColor,
+    required this.onTap,
+    this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: selected
+                ? selectedColor
+                : CustomColor.severityUnselectedBg(context),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: selected
+                      ? CustomColor.onDark
+                      : CustomColor.severityUnselectedText(context),
+                ),
+              ),
+              if (selected && subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w600,
+                    color: CustomColor.onDark,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+

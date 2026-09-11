@@ -332,4 +332,46 @@ class EmergencyHeroBanner extends StatelessWidget {
     );
   }
 }
+// Red warning banner used above the submit button
+/// (e.g. "High severity triggers automated SMS alerts...").
+class WarningBanner1 extends StatelessWidget {
+  final String text;
+  final IconData icon;
+
+  const WarningBanner1({
+    super.key,
+    required this.text,
+    this.icon = Icons.warning_amber_rounded,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CustomColor.warningBannerBg(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CustomColor.warningBannerBorder(context)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: CustomColor.warningBannerIcon(context)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              text,
+              style: TextStyle(
+                fontSize: 12,
+                height: 1.4,
+                color: CustomColor.warningBannerText(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 

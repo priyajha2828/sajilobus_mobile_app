@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_bus/pages/Driver_pages/StopManagement/stop_management_screen.dart';
+import 'package:sajilo_bus/pages/Driver_pages/issue/issue_screen.dart';
 import 'package:sajilo_bus/pages/Driver_pages/trip/trip_screen.dart';
 import 'package:sajilo_bus/pages/Passenger_pages/passenger_dashboard/passenger_dashboard.dart';
 import 'package:sajilo_bus/pages/auth_pages/loginpage.dart';
@@ -30,6 +31,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_)=> const TripScreen());
       case AppRoute.sos:
         return MaterialPageRoute(builder: (_)=> const EmergencyAssistanceScreen());
+      case AppRoute.reportissue:
+        return MaterialPageRoute(builder: (_)=> const ReportIssueScreen());
       default:
         return _errorRoute();
     }
