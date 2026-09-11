@@ -14,6 +14,9 @@ class _PassengerDashboardState extends State<PassengerDashboard> {
       appBar: AppBar(
         backgroundColor: Colors.grey,
       ),
+      body: Center(
+      child: Text("passenger dashboard"),
+      ),
     );
   }
 }

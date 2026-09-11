@@ -297,10 +297,22 @@ class LoginPage extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: (){
-                                // Navigator.pushNamed(context, AppRoute.bottonnavibar);
+                                 Navigator.pushNamed(context, AppRoute.p_dashboard);
                               },
                               child: Text(
-                                "Skip Login",
+                                "p_Login",
+                                style: TextStyle(
+                                  color: CustomColor.textPrimary(context),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: (){
+                                Navigator.pushNamed(context, AppRoute.d_navigation);
+                              },
+                              child: Text(
+                                "D_Login",
                                 style: TextStyle(
                                   color: CustomColor.textPrimary(context),
                                   fontWeight: FontWeight.w500,
