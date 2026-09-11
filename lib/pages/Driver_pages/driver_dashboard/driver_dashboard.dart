@@ -281,7 +281,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.build,
                     title: "Report Issue",
                     iconColor: Colors.deepOrange,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoute.reportissue);
+                    },
                   ),
                   CommandCard(
                     icon: Icons.history,

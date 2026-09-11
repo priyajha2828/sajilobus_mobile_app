@@ -2288,3 +2288,61 @@ class AppCard1 extends StatelessWidget {
   }
 }
 
+// Message bubble from the ops/dispatch desk shown on the incident card.
+class DispatchMessageCard extends StatelessWidget {
+  final String author;
+  final String message;
+
+  const DispatchMessageCard({
+    super.key,
+    required this.author,
+    required this.message,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CustomColor.dispatchMessageBg(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CircleAvatar(
+            radius: 16,
+            backgroundColor: CustomColor.dispatchAvatarBg(context),
+            child: Icon(Icons.headset_mic_outlined,
+                size: 16, color: CustomColor.iconMuted(context)),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  author,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.4,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

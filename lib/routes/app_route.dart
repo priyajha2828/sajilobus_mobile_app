@@ -8,6 +8,7 @@ class AppRoute {
   static const String stop_management = "/stop_management";
   static const String start_trip = "/start_trip";
   static const String sos = "/sos";
+  static const String reportissue = "/reportissue";
 
 
 }

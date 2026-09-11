@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../providers/driver_provider/issue_provider.dart';
 import '../card/driver_card.dart';
 import '../chip/driver_chip.dart';
 import '../color/custom_color.dart';
@@ -321,3 +322,261 @@ class EmergencyAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
+
+/// A single diagnostic row, e.g. "VEHICLE ID / BA 2 KHA 4567 / BUS-101".
+class DiagnosticInfoRow extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String? trailingBadge;
+  final bool showDivider;
+
+  const DiagnosticInfoRow({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.trailingBadge,
+    this.showDivider = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (showDivider)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Divider(height: 1, color: CustomColor.border(context)),
+          ),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, size: 18, color: CustomColor.iconMuted(context)),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                      color: CustomColor.textMutedLabel(context),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: CustomColor.textPrimary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (trailingBadge != null)
+              TagChip(
+                label: trailingBadge!,
+                background: CustomColor.chipBg(context),
+                foreground: CustomColor.chipText(context),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+/// Editable issue-description text area with a character counter and a
+/// "Telemetry synced" status footer.
+class DescriptionField extends StatelessWidget {
+  final TextEditingController controller;
+  final int maxLength;
+  final bool isSynced;
+  final ValueChanged<String>? onChanged;
+
+  const DescriptionField({
+    super.key,
+    required this.controller,
+    required this.maxLength,
+    this.isSynced = false,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: controller,
+            onChanged: onChanged,
+            maxLength: maxLength,
+            maxLines: 5,
+            minLines: 3,
+            style: TextStyle(
+              fontSize: 13,
+              color: CustomColor.textPrimary(context),
+              height: 1.4,
+            ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+              counterText: '',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${controller.text.length} / $maxLength characters',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: CustomColor.textMutedLabel(context),
+                ),
+              ),
+              if (isSynced)
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.check_circle,
+                        size: 14, color: CustomColor.syncedText(context)),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Telemetry synced',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: CustomColor.syncedText(context),
+                      ),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+// Horizontal stepper showing incident progress across
+/// Submitted → Under Review → Dispatched → Resolved.
+class IncidentStepper extends StatelessWidget {
+  final IncidentStage currentStage;
+
+  const IncidentStepper({super.key, required this.currentStage});
+
+  @override
+  Widget build(BuildContext context) {
+    final stages = IncidentStage.values;
+    return Row(
+      children: [
+        for (int i = 0; i < stages.length; i++) ...[
+          Expanded(
+            child: _StageNode(
+              stage: stages[i],
+              state: _stateFor(stages[i]),
+            ),
+          ),
+          if (i != stages.length - 1)
+            Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.only(bottom: 28),
+                color: i < currentStage.index
+                    ? CustomColor.stepperDone
+                    : CustomColor.stepperLine(context),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  _NodeState _stateFor(IncidentStage stage) {
+    if (stage.index < currentStage.index) return _NodeState.done;
+    if (stage.index == currentStage.index) return _NodeState.active;
+    return _NodeState.pending;
+  }
+}
+
+enum _NodeState { done, active, pending }
+
+class _StageNode extends StatelessWidget {
+  final IncidentStage stage;
+  final _NodeState state;
+
+  const _StageNode({required this.stage, required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    Color circleColor;
+    IconData? icon;
+    Color labelColor;
+
+    switch (state) {
+      case _NodeState.done:
+        circleColor = CustomColor.stepperDone;
+        icon = Icons.check;
+        labelColor = CustomColor.textPrimary(context);
+        break;
+      case _NodeState.active:
+        circleColor = CustomColor.stepperActive;
+        icon = Icons.radio_button_checked;
+        labelColor = CustomColor.stepperLabelActive(context);
+        break;
+      case _NodeState.pending:
+        circleColor = CustomColor.stepperPending(context);
+        icon = null;
+        labelColor = CustomColor.stepperLabelMuted(context);
+        break;
+    }
+
+    return Column(
+      children: [
+        Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: state == _NodeState.pending ? Colors.transparent : circleColor,
+            shape: BoxShape.circle,
+            border: state == _NodeState.pending
+                ? Border.all(color: circleColor, width: 2)
+                : null,
+          ),
+          child: icon == null
+              ? null
+              : Icon(icon, size: 15, color: CustomColor.onDark),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          stage.label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            color: labelColor,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          stage.subLabel,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            color: CustomColor.stepperLabelMuted(context),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
