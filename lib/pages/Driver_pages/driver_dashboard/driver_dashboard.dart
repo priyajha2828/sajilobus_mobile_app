@@ -5,7 +5,7 @@ import 'package:sajilo_bus/routes/app_route.dart';
 
 import '../../../providers/driver_provider/dashboard_provider.dart';
 import '../../../providers/theme/theme_provider.dart';
-import '../../../resources/card/driver_card.dart';
+import '../../../resources/card/custom_card.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -289,7 +289,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     icon: Icons.history,
                     title: "Trip Logs",
                     iconColor: Colors.blueGrey,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushNamed(context, AppRoute.triphistory);
+                    },
                   ),
                 ],
               ),

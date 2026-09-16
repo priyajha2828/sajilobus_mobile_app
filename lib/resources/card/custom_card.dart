@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../providers/driver_provider/history_provider.dart';
 import '../../providers/driver_provider/notifications_provider.dart';
 import '../../providers/driver_provider/sos_provider.dart';
+import '../../providers/passenger_provider/dashboard_provider.dart';
+import '../badge/badge.dart';
 import '../banner/driver_banner.dart';
+import '../bar/custom_bar.dart';
 import '../bottom/driver_button.dart';
+import '../chip/custom_chip.dart';
 import '../color/custom_color.dart';
+import '../tile/custom_tile.dart';
+import '../widgets/driver_widgets.dart';
 
 /// =========================================================
 /// NOTICE BANNER (Koshi Highway road expansion alert)
@@ -2346,3 +2353,1073 @@ class DispatchMessageCard extends StatelessWidget {
     );
   }
 }
+
+/// One tile in the top 2x2 summary stats grid.
+class SummaryStatCard extends StatelessWidget {
+  final IconData icon;
+  final Color accent;
+  final String label;
+  final String value;
+  final String? unit;
+  final String subtext;
+
+  const SummaryStatCard({
+    super.key,
+    required this.icon,
+    required this.accent,
+    required this.label,
+    required this.value,
+    required this.subtext,
+    this.unit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      padding: const EdgeInsets.all(11),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.4,
+                    color: CustomColor.textMutedLabel(context),
+                  ),
+                ),
+              ),
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: CustomColor.statIconBg(context, accent),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, size: 14, color: accent),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          RichText(
+            text: TextSpan(
+              children: [
+                TextSpan(
+                  text: value,
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+                if (unit != null)
+                  TextSpan(
+                    text: ' $unit',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: CustomColor.textSecondary(context),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            subtext,
+            style: TextStyle(
+              fontSize: 11,
+              color: CustomColor.textSecondary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+// Stylised map preview used for the "GPS Telemetry Path Trace" section.
+/// Uses a gradient placeholder (no real map SDK) with overlay badges for
+/// the verified-route indicator and max speed reading.
+class MapPreviewCard extends StatelessWidget {
+  final String bottomLeftLabel;
+  final String bottomRightLabel;
+
+  const MapPreviewCard({
+    super.key,
+    required this.bottomLeftLabel,
+    required this.bottomRightLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: SizedBox(
+        height: 150,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [CustomColor.mapBgStart, CustomColor.mapBgEnd],
+                ),
+              ),
+            ),
+            const Center(
+              child: Icon(Icons.map_outlined,
+                  size: 36, color: CustomColor.mapPlaceholderIcon),
+            ),
+            Positioned(
+              left: 10,
+              bottom: 10,
+              child: Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: CustomColor.mapOverlayBadgeBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: CustomColor.mapVerifiedDot,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      bottomLeftLabel,
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: CustomColor.mapOverlayText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              right: 10,
+              bottom: 10,
+              child: Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                decoration: BoxDecoration(
+                  color: CustomColor.mapOverlayBadgeBg,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  bottomRightLabel,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: CustomColor.mapOverlayText,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+/// A collapsed trip manifest row (used for older/completed trips).
+class CompactManifestCard extends StatelessWidget {
+  final CompactManifest manifest;
+  final VoidCallback onDetailsTap;
+
+  const CompactManifestCard({
+    super.key,
+    required this.manifest,
+    required this.onDetailsTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              OutlineChip(label: manifest.tripId),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  manifest.dateLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ),
+              InfoBadge(
+                label: manifest.statusLabel,
+                icon: Icons.check_circle,
+                background: CustomColor.badgeGreenBg(context),
+                foreground: CustomColor.badgeGreenText(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  manifest.routeTitle,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+              ),
+              Text(
+                manifest.distanceLogged,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: CustomColor.textPrimary(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 2),
+          Text(
+            manifest.timeRangeSubtitle,
+            style: TextStyle(
+              fontSize: 12,
+              color: CustomColor.textSecondary(context),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Icon(manifest.leftIcon,
+                  size: 14, color: CustomColor.iconMuted(context)),
+              const SizedBox(width: 4),
+              Text(
+                manifest.leftLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CustomColor.textSecondary(context),
+                ),
+              ),
+              const SizedBox(width: 14),
+              Icon(manifest.midIcon,
+                  size: 14, color: CustomColor.iconMuted(context)),
+              const SizedBox(width: 4),
+              Text(
+                manifest.midLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CustomColor.textSecondary(context),
+                ),
+              ),
+              const Spacer(),
+              InkWell(
+                onTap: onDetailsTap,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Details',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: CustomColor.primary,
+                      ),
+                    ),
+                    Icon(Icons.chevron_right,
+                        size: 16, color: CustomColor.primary),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// The fully-expanded featured manifest card at the top of the list.
+class DetailedManifestCard extends StatelessWidget {
+  final DetailedManifest manifest;
+  final VoidCallback onViewManifest;
+  final VoidCallback onShare;
+
+  const DetailedManifestCard({
+    super.key,
+    required this.manifest,
+    required this.onViewManifest,
+    required this.onShare,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              OutlineChip(label: manifest.tripId),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  manifest.dateShift,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ),
+              InfoBadge(
+                label: manifest.statusLabel,
+                icon: Icons.check_circle,
+                background: CustomColor.badgeGreenBg(context),
+                foreground: CustomColor.badgeGreenText(context),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: CustomColor.bg_color(context),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  manifest.plateNumber,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  manifest.busType,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ),
+              Text(
+                manifest.tripLogId,
+                textAlign: TextAlign.right,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: CustomColor.textMutedLabel(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          RouteTimeline(origin: manifest.origin, destination: manifest.destination),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Expanded(
+                child: MiniStatTile(label: 'Duration', value: manifest.duration),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: MiniStatTile(label: 'Distance', value: manifest.distance),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: MiniStatTile(label: 'Avg Speed', value: manifest.avgSpeed),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Icon(Icons.check_circle_outline,
+                  size: 16, color: CustomColor.success),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  manifest.stopsCoveredLabel,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+              ),
+              Icon(Icons.groups_outlined,
+                  size: 14, color: CustomColor.iconMuted(context)),
+              const SizedBox(width: 4),
+              Text(
+                manifest.loadLabel,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColor.textPrimary(context),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Text(
+                'GPS Telemetry Path Trace',
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: CustomColor.textPrimary(context),
+                ),
+              ),
+              const Spacer(),
+              Icon(Icons.alt_route, size: 13, color: CustomColor.primary),
+              const SizedBox(width: 4),
+              Text(
+                manifest.highwayLabel,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColor.primary,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          MapPreviewCard(
+            bottomLeftLabel: manifest.routeLogLabel,
+            bottomRightLabel: manifest.maxSpeedLabel,
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: onViewManifest,
+                    icon: Icon(Icons.description_outlined,
+                        size: 16, color: CustomColor.textPrimary(context)),
+                    label: Text(
+                      'View Manifest',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: CustomColor.textPrimary(context),
+                      ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: CustomColor.border(context)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: onShare,
+                child: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: CustomColor.squareButtonBg(context),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: CustomColor.squareButtonBorder(context)),
+                  ),
+                  child: Icon(Icons.share_outlined,
+                      size: 18, color: CustomColor.textPrimary(context)),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+/// Dark gradient promo card showing the user's daily-commute route,
+/// next departure ETA, and a live position progress bar.
+class RoutePromoCard extends StatelessWidget {
+  final RoutePromoData data;
+  final VoidCallback onQuickTrack;
+
+  const RoutePromoCard({
+    super.key,
+    required this.data,
+    required this.onQuickTrack,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            CustomColor.routeCardGradientStart,
+            CustomColor.routeCardGradientEnd,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              _Pill(text: data.routeNumber, bold: true),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  data.tag,
+                  style: const TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.3,
+                    color: CustomColor.onDarkMuted,
+                  ),
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.confirmation_num_outlined,
+                      size: 12, color: CustomColor.onDark),
+                  const SizedBox(width: 4),
+                  _Pill(text: data.fare, bold: true),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            data.stopName,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: CustomColor.onDark,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                margin: const EdgeInsets.only(top: 4),
+                decoration: const BoxDecoration(
+                  color: CustomColor.onlineDot,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  data.etaLabel,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    color: CustomColor.onDarkMuted,
+                  ),
+                ),
+              ),
+              SizedBox(
+                height: 38,
+                child: ElevatedButton.icon(
+                  onPressed: onQuickTrack,
+                  icon: const Icon(Icons.my_location,
+                      size: 15, color: CustomColor.routeQuickTrackText),
+                  label: const Text(
+                    'Quick Track',
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: CustomColor.routeQuickTrackText,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CustomColor.routeQuickTrackBg,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Text(
+                data.fromStop,
+                style: const TextStyle(fontSize: 10, color: CustomColor.onDarkMuted),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Stack(
+                  alignment: Alignment.centerLeft,
+                  children: [
+                    Container(
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: CustomColor.routeProgressTrack,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                    ),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final dotX =
+                            (constraints.maxWidth - 14) * data.progress.clamp(0, 1);
+                        return Padding(
+                          padding: EdgeInsets.only(left: dotX),
+                          child: Container(
+                            width: 14,
+                            height: 14,
+                            decoration: const BoxDecoration(
+                              color: CustomColor.routeProgressFill,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(Icons.directions_bus,
+                                size: 9, color: CustomColor.primary),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                data.toStop,
+                style: const TextStyle(fontSize: 10, color: CustomColor.onDarkMuted),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  final String text;
+  final bool bold;
+  const _Pill({required this.text, this.bold = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: CustomColor.routeCardBadgeBg,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: bold ? FontWeight.w700 : FontWeight.w500,
+          color: CustomColor.routeCardBadgeText,
+        ),
+      ),
+    );
+  }
+}
+/// Dark "Live Highway Radar" map placeholder with an active-count badge,
+/// a recenter button, and a bottom overlay bar for highway/speed stats.
+class LiveRadarCard extends StatelessWidget {
+  final String activeLabel;
+  final String highwayLabel;
+  final String speedLabel;
+  final VoidCallback onRecenter;
+
+  const LiveRadarCard({
+    super.key,
+    required this.activeLabel,
+    required this.highwayLabel,
+    required this.speedLabel,
+    required this.onRecenter,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(16),
+      child: SizedBox(
+        height: 150,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [CustomColor.radarBgStart, CustomColor.radarBgEnd],
+                ),
+              ),
+            ),
+            Positioned(
+              left: 12,
+              top: 12,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: CustomColor.radarActiveDot,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    activeLabel,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: CustomColor.radarOverlayText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Positioned(
+              right: 12,
+              top: 12,
+              child: InkWell(
+                onTap: onRecenter,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: CustomColor.radarOverlayBg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.my_location,
+                      size: 16, color: CustomColor.radarOverlayText),
+                ),
+              ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                color: CustomColor.radarOverlayBg,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        highwayLabel,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: CustomColor.radarOverlayText,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      speedLabel,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        color: CustomColor.radarOverlayText,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
+
+/// One nearby real-time bus card. Renders either the full "active" layout
+/// (nearest stop + capacity + track button) or the compact "maintenance"
+/// layout (a single warning row, no track button).
+class LiveBusCard extends StatelessWidget {
+  final LiveBus bus;
+  final bool isBookmarked;
+  final VoidCallback onTrack;
+  final VoidCallback onBookmarkToggle;
+
+  const LiveBusCard({
+    super.key,
+    required this.bus,
+    required this.isBookmarked,
+    required this.onTrack,
+    required this.onBookmarkToggle,
+  });
+
+  bool get _isActive => bus.status == BusStatus.active;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            bus.plateNumber,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: CustomColor.textPrimary(context),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        InfoBadge(
+                          label: _isActive ? 'ACTIVE' : 'MAINTENANCE',
+                          icon: _isActive ? Icons.circle : Icons.build_outlined,
+                          background: _isActive
+                              ? CustomColor.statusActiveBg(context)
+                              : CustomColor.statusMaintenanceBg(context),
+                          foreground: _isActive
+                              ? CustomColor.statusActiveText(context)
+                              : CustomColor.statusMaintenanceText(context),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      bus.routeTitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: CustomColor.textSecondary(context),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    bus.etaValue,
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: _isActive
+                          ? CustomColor.etaActiveColor
+                          : CustomColor.etaDelayedColor(context),
+                    ),
+                  ),
+                  Text(
+                    bus.etaUnit,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w600,
+                      color: CustomColor.textMutedLabel(context),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (_isActive) ..._activeBody(context) else ..._maintenanceBody(context),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _activeBody(BuildContext context) {
+    return [
+      Row(
+        children: [
+          Icon(Icons.location_on_outlined,
+              size: 14, color: CustomColor.iconMuted(context)),
+          const SizedBox(width: 4),
+          Text(
+            'Nearest Stop: ${bus.nearestStop}',
+            style: TextStyle(fontSize: 12, color: CustomColor.textSecondary(context)),
+          ),
+          const Spacer(),
+          Text(
+            bus.nearestStopDistance ?? '',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: CustomColor.textPrimary(context),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Icon(Icons.groups_outlined, size: 14, color: CustomColor.iconMuted(context)),
+          const SizedBox(width: 4),
+          Text(
+            'Capacity: ${bus.capacityCurrent}/${bus.capacityMax} Seats',
+            style: TextStyle(fontSize: 12, color: CustomColor.textSecondary(context)),
+          ),
+          const Spacer(),
+          Text(
+            bus.capacityNote ?? '',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: CustomColor.textPrimary(context),
+            ),
+          ),
+        ],
+      ),
+      const SizedBox(height: 6),
+      CapacityBar(percent: bus.capacityPercent ?? 0),
+      const SizedBox(height: 12),
+      Row(
+        children: [
+          Expanded(
+            child: SizedBox(
+              height: 46,
+              child: ElevatedButton.icon(
+                onPressed: onTrack,
+                icon: const Icon(Icons.navigation_outlined,
+                    size: 16, color: CustomColor.onDark),
+                label: const Text(
+                  'Track Live Bus',
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: CustomColor.onDark,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: CustomColor.primary,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          _BookmarkButton(isBookmarked: isBookmarked, onTap: onBookmarkToggle),
+        ],
+      ),
+    ];
+  }
+
+  List<Widget> _maintenanceBody(BuildContext context) {
+    return [
+      Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: CustomColor.warningRowBg(context),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.info_outline, size: 15, color: CustomColor.warningRowIcon),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                bus.warningText ?? '',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: CustomColor.warningRowText(context),
+                ),
+              ),
+            ),
+            Text(
+              '${bus.capacityCurrent}/${bus.capacityMax} seats',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: CustomColor.warningRowText(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+}
+
+class _BookmarkButton extends StatelessWidget {
+  final bool isBookmarked;
+  final VoidCallback onTap;
+
+  const _BookmarkButton({required this.isBookmarked, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        width: 46,
+        height: 46,
+        decoration: BoxDecoration(
+          color: CustomColor.squareButtonBg(context),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: CustomColor.squareButtonBorder(context)),
+        ),
+        child: Icon(
+          isBookmarked ? Icons.bookmark : Icons.bookmark_border,
+          size: 18,
+          color: isBookmarked ? CustomColor.primary : CustomColor.textSecondary(context),
+        ),
+      ),
+    );
+  }
+}
+
+

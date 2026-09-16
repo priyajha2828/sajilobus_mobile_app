@@ -375,3 +375,64 @@ class WarningBanner1 extends StatelessWidget {
   }
 }
 
+// Info banner linking to the Department of Transport compliance record.
+class DepartmentLogBanner extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const DepartmentLogBanner({
+    super.key,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: CustomColor.departmentBannerBg(context),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.description_outlined,
+                size: 22, color: CustomColor.departmentBannerIcon(context)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: CustomColor.departmentBannerTitle(context),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: CustomColor.departmentBannerSubtitle(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+

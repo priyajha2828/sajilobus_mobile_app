@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:sajilo_bus/pages/Driver_pages/StopManagement/stop_management_screen.dart';
+import 'package:sajilo_bus/pages/Driver_pages/history/history_screen.dart';
 import 'package:sajilo_bus/pages/Driver_pages/issue/issue_screen.dart';
 import 'package:sajilo_bus/pages/Driver_pages/trip/trip_screen.dart';
 import 'package:sajilo_bus/pages/Passenger_pages/passenger_dashboard/passenger_dashboard.dart';
 import 'package:sajilo_bus/pages/auth_pages/loginpage.dart';
+import 'package:sajilo_bus/resources/navigation/passenger_navigation.dart';
 
 import '../pages/Driver_pages/driver_dashboard/driver_dashboard.dart';
 import '../pages/Driver_pages/sos/sos_page.dart';
@@ -20,7 +22,7 @@ class RouteGenerator {
       case AppRoute.loginpage:
         return MaterialPageRoute(builder: (_) => const LoginPage());
       case AppRoute.p_dashboard:
-        return MaterialPageRoute(builder: (_) => const PassengerDashboard());
+        return MaterialPageRoute(builder: (_) => const TransitHomeScreen());
       case AppRoute.d_dashboard:
         return MaterialPageRoute(builder: (_)=> const DashboardScreen());
       case AppRoute.d_navigation:
@@ -33,6 +35,10 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_)=> const EmergencyAssistanceScreen());
       case AppRoute.reportissue:
         return MaterialPageRoute(builder: (_)=> const ReportIssueScreen());
+      case AppRoute.triphistory:
+        return MaterialPageRoute(builder: (_)=> const TripManifestScreen());
+      case AppRoute.user_nav:
+        return MaterialPageRoute(builder: (_)=> const UserNavScreen());
       default:
         return _errorRoute();
     }

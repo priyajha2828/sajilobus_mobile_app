@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../../providers/driver_provider/sos_provider.dart';
 import '../../providers/driver_provider/stop_management_provider.dart';
 import '../../providers/driver_provider/trip_provider.dart';
-import '../chip/driver_chip.dart';
+import '../chip/custom_chip.dart';
 import '../color/custom_color.dart';
 import '../label/label.dart';
 
@@ -1241,6 +1241,129 @@ class AddPhotoTile extends StatelessWidget {
                 fontSize: 10,
                 fontWeight: FontWeight.w600,
                 color: CustomColor.textMutedLabel(context),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// A small label/value tile, e.g. "Duration / 1h 45m".
+class MiniStatTile extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const MiniStatTile({super.key, required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+      decoration: BoxDecoration(
+        color: CustomColor.bg_color(context),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: CustomColor.textMutedLabel(context),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+              color: CustomColor.textPrimary(context),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// One tile in the "Quick Transit Hub" 3-column grid.
+class QuickActionTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool isHighlighted;
+  final int? badgeCount;
+  final VoidCallback onTap;
+
+  const QuickActionTile({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.onTap,
+    this.isHighlighted = false,
+    this.badgeCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = isHighlighted ? CustomColor.sosTileBg : CustomColor.categoryTileBg(context);
+    final iconColor = isHighlighted ? CustomColor.sosTileText : CustomColor.categoryTileIcon(context);
+    final textColor = isHighlighted ? CustomColor.sosTileText : CustomColor.textPrimary(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(14),
+          border: isHighlighted
+              ? null
+              : Border.all(color: CustomColor.categoryTileBorder(context)),
+        ),
+        child: Column(
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(icon, size: 22, color: iconColor),
+                if (badgeCount != null)
+                  Positioned(
+                    top: -4,
+                    right: -10,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                      decoration: const BoxDecoration(
+                        color: CustomColor.countBadgeBg,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Text(
+                        '$badgeCount',
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: CustomColor.countBadgeText,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: textColor,
               ),
             ),
           ],
