@@ -541,4 +541,256 @@ class CustomColor {
   static Color dispatchAvatarBg(BuildContext context) =>
       isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
 
+
+  // ---------------------------------------------------------------------
+  // Trip Manifest Detail screen tokens
+  // ---------------------------------------------------------------------
+
+  /// Search bar.
+  static Color searchBarBg(BuildContext context) => card(context);
+
+  static Color searchBarBorder(BuildContext context) => border(context);
+
+  static Color searchIconColor(BuildContext context) =>
+      isDark(context) ? const Color(0xFF9CA3AF) : const Color(0xFF9CA3AF);
+
+  /// Filter tabs (Today / This Week / This Month / Custom).
+  static Color filterTabSelectedBg(BuildContext context) => primary;
+
+  static Color filterTabUnselectedBg(BuildContext context) => card(context);
+
+  static Color filterTabSelectedText(BuildContext context) => onDark;
+
+  static Color filterTabUnselectedText(BuildContext context) =>
+      textSecondary(context);
+
+  /// Backgrounds for the four 2x2 summary stat tiles' icon circles.
+  static Color statIconBg(BuildContext context, Color accent) =>
+      isDark(context) ? accent.withOpacity(0.18) : accent.withOpacity(0.12);
+
+  static const Color statBlue = Color(0xFF2563EB);
+  static const Color statGreen = success;
+  static const Color statPurple = Color(0xFF7C3AED);
+  static const Color statTeal = Color(0xFF0D9488);
+
+  /// Small bordered pill used for Trip ID tags (e.g. "TRP-2025-1042").
+  static Color outlineChipBg(BuildContext context) => card(context);
+
+  static Color outlineChipBorder(BuildContext context) => border(context);
+
+  static Color outlineChipText(BuildContext context) =>
+      textSecondary(context);
+
+  /// Origin / destination route timeline dots.
+  static const Color originDot = Color(0xFF2563EB);
+  static const Color destinationDot = success;
+
+  static Color timelineConnector(BuildContext context) => border(context);
+
+  /// Map / GPS telemetry preview card.
+  static const Color mapBgStart = Color(0xFFD9EAD3);
+  static const Color mapBgEnd = Color(0xFFC3DFC0);
+
+  static const Color mapOverlayBadgeBg = Color(0xB3111827); // ~70% black
+  static const Color mapOverlayText = onDark;
+
+  static const Color mapVerifiedDot = Color(0xFF22C55E);
+
+  static const Color mapPlaceholderIcon = Color(0x42000000); // black @ 26%
+
+  /// Department of Transport compliance banner.
+  static Color departmentBannerBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A5F) : const Color(0xFFEAF1FF);
+
+  static Color departmentBannerIcon(BuildContext context) => primary;
+
+  static Color departmentBannerTitle(BuildContext context) =>
+      textPrimary(context);
+
+  static Color departmentBannerSubtitle(BuildContext context) =>
+      textSecondary(context);
+
+  /// Share / icon-only square button.
+  static Color squareButtonBg(BuildContext context) => card(context);
+
+  static Color squareButtonBorder(BuildContext context) => border(context);
+
+
+  /// Top app bar (white/light header for the passenger app, unlike the
+  /// driver app's dark navy header).
+  static Color transitHeaderBg(BuildContext context) => card(context);
+
+  static Color locationLinkColor(BuildContext context) => primary;
+
+  /// Quick-destination pill chips under the search bar.
+  static Color destinationChipBg(BuildContext context) => chipBg(context);
+
+  static Color destinationChipText(BuildContext context) => chipText(context);
+
+  /// "ROUTE #104 / Daily Commute" promo card gradient.
+  static const Color routeCardGradientStart = Color(0xFF1E2A5A);
+  static const Color routeCardGradientEnd = Color(0xFF2A3B7A);
+
+  /// Translucent white pill badges on top of the dark promo card
+  /// (e.g. "ROUTE #104", "NPR 45").
+  static const Color routeCardBadgeBg = onDarkTint;
+  static const Color routeCardBadgeText = onDark;
+
+  /// Quick Track button on the dark promo card (white fill, brand text).
+  static const Color routeQuickTrackBg = onDark;
+  static const Color routeQuickTrackText = primary;
+
+  /// Progress track/fill for the route's live position bar (drawn on the
+  /// dark promo card).
+  static const Color routeProgressTrack = onDarkFaint;
+  static const Color routeProgressFill = onDark;
+
+  /// Quick Transit Hub grid tiles — normal tile reuses [categoryTileBg] /
+  /// [categoryTileBorder] / [categoryTileIcon]. The SOS Panic tile gets
+  /// its own high-alert styling:
+  static const Color sosTileBg = Color(0xFF7F1D1D);
+  static const Color sosTileText = onDark;
+
+  /// Small red numeric badge (e.g. the "2" on Alerts / bell icon).
+  static const Color countBadgeBg = danger;
+  static const Color countBadgeText = onDark;
+
+  /// Live Highway Radar map placeholder.
+  static const Color radarBgStart = Color(0xFF374151);
+  static const Color radarBgEnd = Color(0xFF1F2937);
+
+  static const Color radarOverlayBg = mapOverlayBadgeBg;
+  static const Color radarOverlayText = onDark;
+  static const Color radarActiveDot = mapVerifiedDot;
+
+  /// Live bus card status badges.
+  static Color statusActiveBg(BuildContext context) => badgeGreenBg(context);
+
+  static Color statusActiveText(BuildContext context) =>
+      badgeGreenText(context);
+
+  static Color statusMaintenanceBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A5F) : const Color(0xFFE5E7EB);
+
+  static Color statusMaintenanceText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF93C5FD) : const Color(0xFF4B5563);
+
+  /// ETA text color: blue when approaching, muted gray when delayed.
+  static const Color etaActiveColor = Color(0xFF2563EB);
+
+  static Color etaDelayedColor(BuildContext context) =>
+      textMutedLabel(context);
+
+  /// Seat-capacity progress bar fill levels.
+  static const Color capacityFewSeats = warning;
+  static const Color capacitySpacious = success;
+  static const Color capacityFull = danger;
+
+  static Color capacityTrack(BuildContext context) => occupancyTrack(context);
+
+  /// "Track Live Bus" button — full brand color for the nearest/urgent
+  /// bus, a muted variant for less urgent ones.
+  static Color trackButtonMutedBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A8A) : const Color(0xFFDCEAFE);
+
+  static Color trackButtonMutedText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF93C5FD) : primary;
+
+  /// Maintenance / inspection warning row inside a bus card.
+  static Color warningRowBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF3B2F0D) : const Color(0xFFFFFBEB);
+
+  static Color warningRowText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFFCD34D) : const Color(0xFF92400E);
+
+  static const Color warningRowIcon = warning;
+
+  // ----------------------------------------------------------------------
+  // Emergency SOS screen specific colors (added, theme-aware where relevant)
+  // ----------------------------------------------------------------------
+
+  /// Gradient start for the top "Emergency Transit" alert banner.
+  static Color emergencyBannerStart(BuildContext context) =>
+      isDark(context) ? const Color(0xFFB91C1C) : const Color(0xFFEF4444);
+
+  /// Gradient end for the top "Emergency Transit" alert banner.
+  static Color emergencyBannerEnd(BuildContext context) =>
+      isDark(context) ? const Color(0xFF7F1D1D) : const Color(0xFFDC2626);
+
+  /// "LIVE LINE" pill background on the banner.
+  static Color liveLinePill(BuildContext context) =>
+      isDark(context) ? Colors.white.withOpacity(0.18) : Colors.white.withOpacity(0.22);
+
+  /// Blinking live-status dot.
+  static const Color liveDot = Color(0xFF4ADE80);
+
+  /// Accuracy / telemetry lock badge background.
+  static Color accuracyBadgeBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14532D) : const Color(0xFFDCFCE7);
+
+  static Color accuracyBadgeText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4ADE80) : const Color(0xFF15803D);
+
+  /// GPS coordinates info card background.
+  static Color gpsCardBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E293B) : const Color(0xFFF0F4FF);
+
+  /// Vehicle chip badge (BA 2 KHA...).
+  static Color vehicleChipBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A8A) : const Color(0xFF1D4ED8);
+
+  static Color speedChipBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14532D) : const Color(0xFFDCFCE7);
+
+  static Color speedChipText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4ADE80) : const Color(0xFF15803D);
+
+  /// Dispatch lifecycle stepper colors.
+  static Color stepActive(BuildContext context) => primary;
+
+  static Color stepInactive(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  static Color stepLineActive(BuildContext context) => primary;
+
+  static Color stepLineInactive(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  /// Emergency type selectable cards.
+  static Color emergencyTypeCardBg(BuildContext context, {required bool selected, required Color accent}) {
+    if (selected) {
+      return isDark(context) ? accent.withOpacity(0.22) : accent.withOpacity(0.10);
+    }
+    return card_bg(context);
+  }
+
+  static Color emergencyTypeCardBorder(BuildContext context, {required bool selected, required Color accent}) {
+    if (selected) return accent;
+    return border(context);
+  }
+
+  static const Color medicalAccent = Color(0xFF2563EB);
+  static const Color harassmentAccent = Color(0xFFDC2626);
+  static const Color collisionAccent = Color(0xFFF59E0B);
+  static const Color rashDrivingAccent = Color(0xFF7C3AED);
+
+  /// SOS button gradient.
+  static Color sosOuterGlow(BuildContext context) =>
+      isDark(context) ? const Color(0x33DC2626) : const Color(0x22DC2626);
+
+  static const Color sosButtonStart = Color(0xFFEF4444);
+  static const Color sosButtonEnd = Color(0xFFB91C1C);
+
+  /// Call action buttons.
+  static Color callPoliceBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A8A) : const Color(0xFF1D4ED8);
+
+  static Color callTrafficBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF134E4A) : const Color(0xFF0D9488);
+
+  /// Dispatch preview "MONITORED 24/7" badge.
+  static Color monitoredBadgeBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14532D) : const Color(0xFF16A34A);
+
+  static const Color monitoredBadgeText = Colors.white;
 }

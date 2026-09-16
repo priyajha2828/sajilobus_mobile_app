@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/driver_provider/history_provider.dart';
 import '../../providers/driver_provider/issue_provider.dart';
-import '../card/driver_card.dart';
-import '../chip/driver_chip.dart';
+import '../card/custom_card.dart';
+import '../chip/custom_chip.dart';
 import '../color/custom_color.dart';
 import '../label/label.dart';
 
@@ -579,4 +581,188 @@ class _StageNode extends StatelessWidget {
     );
   }
 }
+
+// ---------------------------------------------------------------------
+// 2x2 summary stats grid
+// ---------------------------------------------------------------------
+class StatsGrid extends StatelessWidget {
+  final TripManifestProvider provider;
+  const StatsGrid({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: provider.stats.length,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        mainAxisSpacing: 12,
+        crossAxisSpacing: 12,
+        childAspectRatio: 1.55,
+      ),
+      itemBuilder: (context, index) {
+        final s = provider.stats[index];
+        return SummaryStatCard(
+          icon: s.icon,
+          accent: s.accent,
+          label: s.label,
+          value: s.value,
+          unit: s.unit,
+          subtext: s.subtext,
+        );
+      },
+    );
+  }
+}
+
+// ---------------------------------------------------------------------
+// Date range filter tabs
+// ---------------------------------------------------------------------
+class FilterTabsRow extends StatelessWidget {
+  final TripManifestProvider provider;
+  const FilterTabsRow({required this.provider});
+
+  @override
+  Widget build(BuildContext context) {
+    final p = context.read<TripManifestProvider>();
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (int i = 0; i < provider.filterTabs.length; i++) ...[
+            if (i != 0) const SizedBox(width: 8),
+            FilterTabChip(
+              label: provider.filterTabs[i],
+              selected: provider.selectedFilterIndex == i,
+              icon: provider.filterTabs[i] == 'Custom'
+                  ? Icons.calendar_today_outlined
+                  : null,
+              onTap: () => p.selectFilter(i),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Vertical two-point timeline showing a trip's origin and destination.
+class RouteTimeline extends StatelessWidget {
+  final ManifestPoint origin;
+  final ManifestPoint destination;
+
+  const RouteTimeline({
+    super.key,
+    required this.origin,
+    required this.destination,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        _PointRow(
+          point: origin,
+          dotColor: CustomColor.originDot,
+          showConnector: true,
+        ),
+        _PointRow(
+          point: destination,
+          dotColor: CustomColor.destinationDot,
+          showConnector: false,
+        ),
+      ],
+    );
+  }
+}
+
+class _PointRow extends StatelessWidget {
+  final ManifestPoint point;
+  final Color dotColor;
+  final bool showConnector;
+
+  const _PointRow({
+    required this.point,
+    required this.dotColor,
+    required this.showConnector,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Column(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
+              ),
+              if (showConnector)
+                Expanded(
+                  child: Container(
+                    width: 2,
+                    margin: const EdgeInsets.symmetric(vertical: 2),
+                    color: CustomColor.timelineConnector(context),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Padding(
+              padding: EdgeInsets.only(bottom: showConnector ? 14 : 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          point.label,
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.4,
+                            color: dotColor,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        point.time,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: CustomColor.textSecondary(context),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    point.name,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: CustomColor.textPrimary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+
+
+
 

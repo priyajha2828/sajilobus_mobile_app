@@ -297,7 +297,7 @@ class LoginPage extends StatelessWidget {
                             ),
                             TextButton(
                               onPressed: (){
-                                 Navigator.pushNamed(context, AppRoute.p_dashboard);
+                                 Navigator.pushNamed(context, AppRoute.user_nav);
                               },
                               child: Text(
                                 "p_Login",

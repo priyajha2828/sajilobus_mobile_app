@@ -5,10 +5,10 @@ import 'package:provider/provider.dart';
 
 import '../../../providers/driver_provider/stop_management_provider.dart';
 import '../../../resources/badge/badge.dart';
-import '../../../resources/bar/driver_bar.dart';
+import '../../../resources/bar/custom_bar.dart';
 import '../../../resources/bottom/driver_button.dart';
-import '../../../resources/card/driver_card.dart';
-import '../../../resources/chip/driver_chip.dart';
+import '../../../resources/card/custom_card.dart';
+import '../../../resources/chip/custom_chip.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/tile/custom_tile.dart';
 import '../../../routes/app_route.dart';
