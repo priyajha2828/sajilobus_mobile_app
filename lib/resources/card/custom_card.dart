@@ -3,14 +3,15 @@ import '../../providers/driver_provider/history_provider.dart';
 import '../../providers/driver_provider/notifications_provider.dart';
 import '../../providers/driver_provider/sos_provider.dart';
 import '../../providers/passenger_provider/dashboard_provider.dart';
+import '../../providers/passenger_provider/sos_provider.dart';
 import '../badge/badge.dart';
-import '../banner/driver_banner.dart';
+import '../banner/custom_banner.dart';
 import '../bar/custom_bar.dart';
 import '../bottom/driver_button.dart';
 import '../chip/custom_chip.dart';
 import '../color/custom_color.dart';
 import '../tile/custom_tile.dart';
-import '../widgets/driver_widgets.dart';
+import '../widgets/custom_widgets.dart';
 
 /// =========================================================
 /// NOTICE BANNER (Koshi Highway road expansion alert)
@@ -3417,6 +3418,229 @@ class _BookmarkButton extends StatelessWidget {
           size: 18,
           color: isBookmarked ? CustomColor.primary : CustomColor.textSecondary(context),
         ),
+      ),
+    );
+  }
+}
+
+
+
+/// Light blue card showing the passenger's auto-detected GPS coordinates.
+class GpsCoordinatesCard extends StatelessWidget {
+  final String label;
+  final String coordinates;
+  final String subtext;
+
+  const GpsCoordinatesCard({
+    super.key,
+    required this.label,
+    required this.coordinates,
+    required this.subtext,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: CustomColor.gpsCardBg(context),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.gps_fixed, size: 18, color: CustomColor.gpsCardIcon(context)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.3,
+                    color: CustomColor.textMutedLabel(context),
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  coordinates,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    Icon(Icons.near_me_outlined,
+                        size: 12, color: CustomColor.textSecondary(context)),
+                    const SizedBox(width: 4),
+                    Expanded(
+                      child: Text(
+                        subtext,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: CustomColor.textSecondary(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// Card showing the dispatch unit, protocol, and registered family alert
+/// status, with a footer link to dispatch settings.
+class DispatchPreviewCard1 extends StatelessWidget {
+  final String title;
+  final List<DispatchInfoRow> rows;
+  final String channelLabel;
+  final VoidCallback onSettingsTap;
+
+  const DispatchPreviewCard1({
+    super.key,
+    required this.title,
+    required this.rows,
+    required this.channelLabel,
+    required this.onSettingsTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.verified_user_outlined,
+                  size: 18, color: CustomColor.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: CustomColor.textPrimary(context),
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: CustomColor.monitoredBadgeBg(context),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'MONITORED 24/7',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    color: CustomColor.monitoredBadgeText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            child: Divider(height: 1, color: CustomColor.border(context)),
+          ),
+          for (final row in rows) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    width: 130,
+                    child: Text(
+                      row.label,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: CustomColor.dispatchRowLabel(context),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (row.leadingIcon != null) ...[
+                          Icon(row.leadingIcon, size: 13, color: CustomColor.success),
+                          const SizedBox(width: 4),
+                        ],
+                        Expanded(
+                          child: Text(
+                            row.value,
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: row.isLink
+                                  ? CustomColor.dispatchLinkValue(context)
+                                  : CustomColor.dispatchRowValue(context),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            child: Divider(height: 1, color: CustomColor.border(context)),
+          ),
+          Row(
+            children: [
+              Icon(Icons.lock_outline,
+                  size: 13, color: CustomColor.channelLockIcon(context)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  channelLabel,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ),
+              InkWell(
+                onTap: onSettingsTap,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Dispatch settings',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: CustomColor.primary,
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, size: 15, color: CustomColor.primary),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

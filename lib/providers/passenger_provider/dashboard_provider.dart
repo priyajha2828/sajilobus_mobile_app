@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 
 
 import 'package:flutter/material.dart';
+import 'package:sajilo_bus/routes/app_route.dart';
+
+import '../../main.dart';
 
 /// A quick-destination pill chip under the search bar.
 class QuickDestination {
@@ -42,12 +45,14 @@ class QuickAction {
   final String label;
   final bool isHighlighted; // SOS Panic gets high-alert styling
   final int? badgeCount; // e.g. Alerts -> 2
+  final VoidCallback? onTap;
 
   const QuickAction({
     required this.icon,
     required this.label,
     this.isHighlighted = false,
     this.badgeCount,
+    this.onTap,
   });
 }
 
@@ -148,13 +153,13 @@ class TransitHomeProvider extends ChangeNotifier {
   }
 
   // ---------------- Quick Transit Hub ----------------
-  final List<QuickAction> quickActions = const [
+  final List<QuickAction> quickActions = [
     QuickAction(icon: Icons.map_outlined, label: 'Track Bus'),
-    QuickAction(icon: Icons.alt_route, label: 'Search Route'),
-    QuickAction(icon: Icons.notifications_none_rounded, label: 'Alerts', badgeCount: 2),
-    QuickAction(icon: Icons.sos_rounded, label: 'SOS Panic', isHighlighted: true),
-    QuickAction(icon: Icons.history_outlined, label: 'Trip Log'),
-    QuickAction(icon: Icons.shield_outlined, label: 'Contacts'),
+    const QuickAction(icon: Icons.alt_route, label: 'Search Route'),
+    const QuickAction(icon: Icons.notifications_none_rounded, label: 'Alerts', badgeCount: 2),
+    QuickAction(icon: Icons.sos_rounded, label: 'SOS Panic', isHighlighted: true,onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.p_sos)),
+    const QuickAction(icon: Icons.history_outlined, label: 'Trip Log'),
+    const QuickAction(icon: Icons.shield_outlined, label: 'Contacts'),
   ];
 
   void openQuickAction(String label) {

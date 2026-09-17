@@ -522,3 +522,107 @@ class SeverityButton extends StatelessWidget {
   }
 }
 
+
+/// Large circular "hold to activate" SOS button. Shows a progress ring
+/// that fills as the user holds it down; releasing early cancels it.
+class SosHoldButton extends StatelessWidget {
+  final double progress; // 0.0 - 1.0
+  final bool isHolding;
+  final bool activated;
+  final String label;
+  final String subLabel;
+  final VoidCallback onHoldStart;
+  final VoidCallback onHoldEnd;
+
+  const SosHoldButton({
+    super.key,
+    required this.progress,
+    required this.isHolding,
+    required this.activated,
+    required this.onHoldStart,
+    required this.onHoldEnd,
+    this.label = 'SOS',
+    this.subLabel = 'HOLD 2S',
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onLongPressStart: (_) => onHoldStart(),
+      onLongPressEnd: (_) => onHoldEnd(),
+      onLongPressCancel: onHoldEnd,
+      child: SizedBox(
+        width: 190,
+        height: 190,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            // Outer soft ring.
+            Container(
+              width: 190,
+              height: 190,
+              decoration: const BoxDecoration(
+                color: CustomColor.sosButtonRing,
+                shape: BoxShape.circle,
+              ),
+            ),
+            // Hold progress ring.
+            SizedBox(
+              width: 168,
+              height: 168,
+              child: CircularProgressIndicator(
+                value: progress,
+                strokeWidth: 4,
+                backgroundColor: Colors.transparent,
+                valueColor:
+                const AlwaysStoppedAnimation<Color>(CustomColor.sosProgressRing),
+              ),
+            ),
+            // Main red button.
+            Container(
+              width: 150,
+              height: 150,
+              decoration: const BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    CustomColor.sosButtonGradientStart,
+                    CustomColor.sosButtonGradientEnd,
+                  ],
+                ),
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.power_settings_new,
+                      size: 34, color: CustomColor.sosButtonText),
+                  const SizedBox(height: 6),
+                  Text(
+                    activated ? 'SENT' : label,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                      color: CustomColor.sosButtonText,
+                    ),
+                  ),
+                  Text(
+                    activated ? 'Help is on the way' : subLabel,
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: CustomColor.sosButtonText,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

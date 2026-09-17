@@ -247,7 +247,10 @@ class _QuickActionsGrid extends StatelessWidget {
           label: action.label,
           isHighlighted: action.isHighlighted,
           badgeCount: action.badgeCount,
-          onTap: () => p.openQuickAction(action.label),
+          onTap: () {
+            action.onTap?.call();
+            p.openQuickAction(action.label);
+          }
         );
       },
     );

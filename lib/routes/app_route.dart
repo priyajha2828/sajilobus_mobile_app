@@ -10,4 +10,6 @@ class AppRoute {
   static const String reportissue = "/reportissue";
   static const String triphistory = "/triphistory";
   static const String user_nav = "/user_nav";
+  static const String p_sos="/p_sos";
+
 }

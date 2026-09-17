@@ -1,177 +1,213 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-
-/// The three stages of the live dispatch lifecycle stepper.
+/// Stages of the live dispatch lifecycle stepper.
 enum DispatchStage { pending, inProgress, resolved }
 
-/// Model for a selectable "Nature of Emergency" tile.
+extension DispatchStageX on DispatchStage {
+  String get label {
+    switch (this) {
+      case DispatchStage.pending:
+        return 'PENDING';
+      case DispatchStage.inProgress:
+        return 'IN_PROGRESS';
+      case DispatchStage.resolved:
+        return 'RESOLVED';
+    }
+  }
+
+  String get subLabel {
+    switch (this) {
+      case DispatchStage.pending:
+        return 'Armed';
+      case DispatchStage.inProgress:
+        return 'Fleet Notified';
+      case DispatchStage.resolved:
+        return 'Safe & Closed';
+    }
+  }
+
+  IconData get icon {
+    switch (this) {
+      case DispatchStage.pending:
+        return Icons.radio_button_checked;
+      case DispatchStage.inProgress:
+        return Icons.podcasts;
+      case DispatchStage.resolved:
+        return Icons.check;
+    }
+  }
+}
+
+/// One selectable tile in the "Nature of Emergency" grid.
 class EmergencyType {
-  final String id;
-  final String title;
-  final String subtitle;
   final IconData icon;
-  final Color accent;
+  final String label;
+  final String subtitle;
 
   const EmergencyType({
-    required this.id,
-    required this.title,
-    required this.subtitle,
     required this.icon,
-    required this.accent,
+    required this.label,
+    required this.subtitle,
   });
 }
 
-/// Simple model describing the currently tracked vehicle.
-class VehicleInfo {
-  final String plate;
-  final String routeLabel;
-  final String routeDetail;
-  final String speedKmh;
+/// One row inside the Central Transit Dispatch Preview card.
+class DispatchInfoRow {
+  final String label;
+  final String value;
+  final bool isLink;
+  final IconData? leadingIcon;
 
-  const VehicleInfo({
-    required this.plate,
-    required this.routeLabel,
-    required this.routeDetail,
-    required this.speedKmh,
+  const DispatchInfoRow({
+    required this.label,
+    required this.value,
+    this.isLink = false,
+    this.leadingIcon,
   });
 }
+class PassengerSosProvider extends ChangeNotifier {
+  // ---------------- Top emergency banner ----------------
+  final String bannerTitle = 'Emergency Transit SOS';
+  final String bannerSubtitle =
+      'Direct priority link to Nepal Police (100) & Central Dispatch';
+  final bool isLiveLine = true;
 
-/// Simple model describing the live GPS fix.
-class GpsFix {
-  final String coordinates;
-  final String nearestLandmark;
-  final String accuracyLabel;
+  // ---------------- Telemetry / GPS ----------------
+  final String accuracyLabel = '±3m Accuracy';
+  final String gpsCoordinates = '26.4525° N, 87.2718° E';
+  final String gpsSubtext = 'Near Tankisinuwari Chowk, Koshi Rajmarg';
 
-  const GpsFix({
-    required this.coordinates,
-    required this.nearestLandmark,
-    required this.accuracyLabel,
-  });
-}
+  // ---------------- Vehicle track row ----------------
+  final String vehiclePlate = 'BA 2 KHA 8492';
+  final String vehicleBadge = 'Koshi Express';
+  final String routeLabel = 'Route 104: Biratnagar → Itahari';
+  final String speedLabel = 'Speed: 38 km/h';
 
-class EmergencyProvider extends ChangeNotifier {
-  EmergencyProvider();
+  // ---------------- Dispatch lifecycle ----------------
+  final DispatchStage currentStage = DispatchStage.pending;
 
-  // ---------------------------------------------------------------------
-  // Static / demo data - in a real app this would come from a repository.
-  // ---------------------------------------------------------------------
-  final VehicleInfo vehicle = const VehicleInfo(
-    plate: 'BA 2 KHA ...',
-    routeLabel: 'Koshi Express',
-    routeDetail: 'Route 104: Biratnagar → Itahari',
-    speedKmh: '38',
-  );
-
-  final GpsFix gpsFix = const GpsFix(
-    coordinates: '26.4525° N, 87.2718° E',
-    nearestLandmark: 'Near Tankisinuwari Chowk, Koshi Rajmarg',
-    accuracyLabel: '±3m Accuracy',
-  );
-
+  // ---------------- Nature of Emergency ----------------
   final List<EmergencyType> emergencyTypes = const [
     EmergencyType(
-      id: 'medical',
-      title: 'Medical Issue',
-      subtitle: 'Injury or illness',
       icon: Icons.medical_services_outlined,
-      accent: Color(0xFF2563EB),
+      label: 'Medical Issue',
+      subtitle: 'Injury or illness',
     ),
     EmergencyType(
-      id: 'harassment',
-      title: 'Harassment',
-      subtitle: 'Safety concern',
       icon: Icons.shield_outlined,
-      accent: Color(0xFFDC2626),
+      label: 'Harassment',
+      subtitle: 'Safety concern',
     ),
     EmergencyType(
-      id: 'collision',
-      title: 'Collision',
-      subtitle: 'Road accident',
       icon: Icons.car_crash_outlined,
-      accent: Color(0xFFF59E0B),
+      label: 'Collision',
+      subtitle: 'Road accident',
     ),
     EmergencyType(
-      id: 'rash_driving',
-      title: 'Rash Driving',
-      subtitle: 'Reckless speed',
       icon: Icons.speed_outlined,
-      accent: Color(0xFF7C3AED),
+      label: 'Rash Driving',
+      subtitle: 'Reckless speed',
     ),
   ];
 
-  // ---------------------------------------------------------------------
-  // Dispatch lifecycle
-  // ---------------------------------------------------------------------
-  DispatchStage dispatchStage = DispatchStage.pending;
+  int selectedEmergencyIndex = 1; // "Harassment" pre-selected
 
-  // ---------------------------------------------------------------------
-  // Nature of emergency selection (multi-select, per "Select one or more")
-  // ---------------------------------------------------------------------
-  final Set<String> _selectedEmergencyIds = {};
-
-  bool isSelected(String id) => _selectedEmergencyIds.contains(id);
-
-  void toggleEmergencyType(String id) {
-    if (_selectedEmergencyIds.contains(id)) {
-      _selectedEmergencyIds.remove(id);
-    } else {
-      _selectedEmergencyIds.add(id);
-    }
+  void selectEmergencyType(int index) {
+    selectedEmergencyIndex = index;
     notifyListeners();
   }
 
-  // ---------------------------------------------------------------------
-  // Incident details text field
-  // ---------------------------------------------------------------------
-  final TextEditingController incidentDetailsController = TextEditingController();
+  // ---------------- Incident details ----------------
+  final TextEditingController descriptionController = TextEditingController();
 
-  // ---------------------------------------------------------------------
-  // SOS hold-to-activate logic (Hold 2s)
-  // ---------------------------------------------------------------------
-  static const Duration holdDuration = Duration(milliseconds: 2000);
+  void updateDescription(String value) {
+    notifyListeners();
+  }
 
-  double sosProgress = 0.0; // 0.0 -> 1.0
-  bool isSosActivated = false;
-  Timer? _sosTimer;
+  void startVoiceInput() {
+    // TODO: integrate speech-to-text capture.
+    notifyListeners();
+  }
 
-  void startSosHold() {
-    if (isSosActivated) return;
-    _sosTimer?.cancel();
-    sosProgress = 0.0;
-    const tickMs = 30;
-    final totalTicks = holdDuration.inMilliseconds ~/ tickMs;
-    var currentTick = 0;
+  // ---------------- Critical Response Initiator (hold-to-activate) ----------------
+  final Duration holdDuration = const Duration(milliseconds: 2000);
+  double holdProgress = 0.0; // 0.0 - 1.0
+  bool isHolding = false;
+  bool sosActivated = false;
+  Timer? _holdTimer;
 
-    _sosTimer = Timer.periodic(const Duration(milliseconds: tickMs), (timer) {
-      currentTick++;
-      sosProgress = (currentTick / totalTicks).clamp(0.0, 1.0);
-      if (sosProgress >= 1.0) {
-        isSosActivated = true;
+  final String policeContactLabel = 'Police Transit Control (100)';
+  final int emergencyContactCount = 2;
+
+  void startHold() {
+    if (sosActivated) return;
+    isHolding = true;
+    holdProgress = 0.0;
+    const tickMs = 50;
+    _holdTimer?.cancel();
+    _holdTimer = Timer.periodic(const Duration(milliseconds: tickMs), (timer) {
+      holdProgress += tickMs / holdDuration.inMilliseconds;
+      if (holdProgress >= 1.0) {
+        holdProgress = 1.0;
         timer.cancel();
+        _activateSos();
       }
       notifyListeners();
     });
+    notifyListeners();
   }
 
-  void cancelSosHold() {
-    if (isSosActivated) return; // already fired, do not cancel
-    _sosTimer?.cancel();
-    sosProgress = 0.0;
+  void cancelHold() {
+    if (sosActivated) return;
+    _holdTimer?.cancel();
+    isHolding = false;
+    holdProgress = 0.0;
+    notifyListeners();
+  }
+
+  void _activateSos() {
+    isHolding = false;
+    sosActivated = true;
+    // TODO: call your dispatch API to broadcast the live SOS alert here.
     notifyListeners();
   }
 
   void resetSos() {
-    _sosTimer?.cancel();
-    sosProgress = 0.0;
-    isSosActivated = false;
-    dispatchStage = DispatchStage.pending;
+    sosActivated = false;
+    holdProgress = 0.0;
+    notifyListeners();
+  }
+
+  // ---------------- Emergency call buttons ----------------
+  final String policeHotline = '100';
+  final String trafficPoliceLine = '103';
+
+  void callNumber(String number) {
+    // TODO: integrate url_launcher tel: call.
+    notifyListeners();
+  }
+
+  // ---------------- Central Transit Dispatch Preview ----------------
+  final String dispatchUnit = 'Itahari Transit Control Desk';
+  final String dispatchProtocol = 'Priority Intercept #NEP-9021';
+  final String familyAlertLabel = '2 Contacts Armed (SMS + Live Pin)';
+  final String channelLabel = 'Encrypted Gov Transit Channel';
+
+  void openDispatchSettings() {
+    // TODO: navigate to dispatch/emergency-contact settings.
+    notifyListeners();
+  }
+
+  // ---------------- Footer ----------------
+  void returnToNavigation() {
+    // TODO: pop back to the live navigation/tracking screen.
     notifyListeners();
   }
 
   @override
   void dispose() {
-    _sosTimer?.cancel();
-    incidentDetailsController.dispose();
+    _holdTimer?.cancel();
+    descriptionController.dispose();
     super.dispose();
   }
 }

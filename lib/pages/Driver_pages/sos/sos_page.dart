@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../providers/driver_provider/sos_provider.dart';
-import '../../../resources/banner/driver_banner.dart';
+import '../../../resources/banner/custom_banner.dart';
 import '../../../resources/bottom/driver_button.dart';
 import '../../../resources/card/custom_card.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/header/custom_header.dart';
 import '../../../resources/label/label.dart';
 import '../../../resources/tile/custom_tile.dart';
-import '../../../resources/widgets/driver_widgets.dart';
+import '../../../resources/widgets/custom_widgets.dart';
 
 
 class EmergencyAssistanceScreen extends StatelessWidget {

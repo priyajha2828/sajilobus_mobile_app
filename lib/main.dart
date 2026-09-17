@@ -10,13 +10,18 @@ import 'package:sajilo_bus/providers/driver_provider/profile_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/sos_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/stop_management_provider.dart';
 import 'package:sajilo_bus/providers/driver_provider/trip_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/alert_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/dashboard_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/sos_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/track_provider.dart';
 import 'package:sajilo_bus/providers/splash_provider/splash_provider.dart';
 import 'package:sajilo_bus/providers/theme/theme_provider.dart';
 import 'package:sajilo_bus/routes/route_generator.dart';
 import 'package:sajilo_bus/screen/splash_screen.dart';
 
 import 'firebase_options.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +44,10 @@ void main() async{
         ChangeNotifierProvider(create: (_)=>EmergencyProvider()),
         ChangeNotifierProvider(create: (_)=> ReportIssueProvider()),
         ChangeNotifierProvider(create: (_)=> TripManifestProvider()),
-        ChangeNotifierProvider(create: (_)=> TransitHomeProvider())
+        ChangeNotifierProvider(create: (_)=> TransitHomeProvider()),
+        ChangeNotifierProvider(create: (_)=> TrackProvider()),
+        ChangeNotifierProvider(create: (_)=> AlertsProvider()),
+        ChangeNotifierProvider(create: (_)=> PassengerSosProvider()),
       ],
       child: const MyApp(),
     ),
@@ -60,6 +68,7 @@ class MyApp extends StatelessWidget {
           darkTheme: ThemeData.dark(),
           home: const SplashScreen(),
           onGenerateRoute: RouteGenerator.generateRoutes,
+          navigatorKey: navigatorKey,
 
         );
       }

@@ -191,3 +191,77 @@ class _TextFromFieldWithPrefixSuffixState
     );
   }
 }
+
+/// Multi-line text field with a trailing mic button for the
+/// "Incident Details (Optional)" section.
+class VoiceTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final ValueChanged<String>? onChanged;
+  final VoidCallback onMicTap;
+
+  const VoiceTextField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    required this.onMicTap,
+    this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: CustomColor.inputBg(context),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: CustomColor.inputBorderDefault(context)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: TextField(
+              controller: controller,
+              onChanged: onChanged,
+              minLines: 2,
+              maxLines: 3,
+              style: TextStyle(
+                fontSize: 13,
+                color: CustomColor.textPrimary(context),
+              ),
+              decoration: InputDecoration(
+                isDense: true,
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                hintText: hint,
+                hintStyle: TextStyle(
+                  fontSize: 13,
+                  height: 1.4,
+                  color: CustomColor.inputHintDefault(context),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 8, left: 6),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(20),
+              onTap: onMicTap,
+              child: Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: CustomColor.voiceButtonBg(context),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.mic_none_outlined,
+                    size: 16, color: CustomColor.voiceButtonIcon(context)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
