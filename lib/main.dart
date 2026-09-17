@@ -13,8 +13,10 @@ import 'package:sajilo_bus/providers/driver_provider/trip_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/alert_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/dashboard_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/profile_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/sos_contact_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/sos_provider.dart';
-import 'package:sajilo_bus/providers/passenger_provider/track_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/search_route_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/trip_history_provider.dart';
 import 'package:sajilo_bus/providers/splash_provider/splash_provider.dart';
 import 'package:sajilo_bus/providers/theme/theme_provider.dart';
 import 'package:sajilo_bus/routes/route_generator.dart';
@@ -46,10 +48,12 @@ void main() async{
         ChangeNotifierProvider(create: (_)=> ReportIssueProvider()),
         ChangeNotifierProvider(create: (_)=> TripManifestProvider()),
         ChangeNotifierProvider(create: (_)=> TransitHomeProvider()),
-        ChangeNotifierProvider(create: (_)=> TrackProvider()),
+        ChangeNotifierProvider(create: (_)=> SearchRouteProvider()),
         ChangeNotifierProvider(create: (_)=> AlertsProvider()),
         ChangeNotifierProvider(create: (_)=> PassengerSosProvider()),
         ChangeNotifierProvider(create: (_)=>ProfileProvider()),
+        ChangeNotifierProvider(create: (_)=> PassengerSosContactProvider()),
+        ChangeNotifierProvider(create: (_)=> P_TripHistoryProvider()),
       ],
       child: const MyApp(),
     ),

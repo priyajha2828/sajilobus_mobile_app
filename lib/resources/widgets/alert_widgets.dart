@@ -18,23 +18,42 @@ class LiveSyncBanner extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 7,
-                height: 7,
-                decoration: const BoxDecoration(color: CustomColor.liveSyncDot, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                provider.liveSyncActive
-                    ? 'Live Sync Active • ${provider.gridLabel}'
-                    : 'Live Sync Paused • ${provider.gridLabel}',
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: CustomColor.textPrimary(context)),
-              ),
-            ],
+          // FIX: wrap the dot+text side in Expanded so it shrinks instead
+          // of pushing the "New" badge off the right edge (was causing a
+          // 16px RenderFlex overflow on narrow screens).
+          Expanded(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 7,
+                  height: 7,
+                  decoration: const BoxDecoration(
+                    color: CustomColor.liveSyncDot,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  // FIX: Text can now shrink/ellipsize instead of forcing
+                  // the Row wider than the available space.
+                  child: Text(
+                    provider.liveSyncActive
+                        ? 'Live Sync Active • ${provider.gridLabel}'
+                        : 'Live Sync Paused • ${provider.gridLabel}',
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: CustomColor.textPrimary(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-          if (provider.newCount > 0)
+          if (provider.newCount > 0) ...[
+            const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
@@ -43,9 +62,14 @@ class LiveSyncBanner extends StatelessWidget {
               ),
               child: Text(
                 '${provider.newCount} New',
-                style: const TextStyle(fontSize: 10.5, fontWeight: FontWeight.bold, color: CustomColor.newBadgeText),
+                style: const TextStyle(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.bold,
+                  color: CustomColor.newBadgeText,
+                ),
               ),
             ),
+          ],
         ],
       ),
     );
@@ -68,12 +92,19 @@ class InboxHeader extends StatelessWidget {
             children: [
               Text(
                 'Inbox & Alerts',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: CustomColor.textPrimary(context)),
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: CustomColor.textPrimary(context),
+                ),
               ),
               const SizedBox(height: 2),
               Text(
                 'Real-time trip notices and safety logs',
-                style: TextStyle(fontSize: 12.5, color: CustomColor.textSecondary(context)),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  color: CustomColor.textSecondary(context),
+                ),
               ),
             ],
           ),
@@ -81,12 +112,18 @@ class InboxHeader extends StatelessWidget {
         InkWell(
           onTap: p.markAllRead,
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.done_all, size: 15, color: CustomColor.markAllReadText(context)),
+              Icon(Icons.done_all,
+                  size: 15, color: CustomColor.markAllReadText(context)),
               const SizedBox(width: 4),
               Text(
                 'Mark all read',
-                style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w600, color: CustomColor.markAllReadText(context)),
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColor.markAllReadText(context),
+                ),
               ),
             ],
           ),
@@ -119,7 +156,9 @@ class AlertFilterChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
-          color: selected ? CustomColor.filterChipSelectedBg1(context) : CustomColor.filterChipUnselectedBg(context),
+          color: selected
+              ? CustomColor.filterChipSelectedBg1(context)
+              : CustomColor.filterChipUnselectedBg(context),
           borderRadius: BorderRadius.circular(20),
         ),
         child: Row(
@@ -130,7 +169,9 @@ class AlertFilterChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 12.5,
                 fontWeight: FontWeight.w600,
-                color: selected ? CustomColor.filterChipSelectedText1(context) : CustomColor.filterChipUnselectedText(context),
+                color: selected
+                    ? CustomColor.filterChipSelectedText1(context)
+                    : CustomColor.filterChipUnselectedText(context),
               ),
             ),
             if (count != null) ...[
@@ -171,30 +212,40 @@ class AlertFilterBar extends StatelessWidget {
       height: 38,
       child: ListView(
         scrollDirection: Axis.horizontal,
+        // FIX: IntrinsicHeight forces every chip in this horizontal list
+        // to take the SizedBox's bounded height instead of an unbounded
+        // one, which was the source of the ~100000px vertical overflow.
         children: [
-          AlertFilterChip(
-            label: 'All',
-            count: provider.totalCount,
-            selected: provider.selectedFilter == AlertFilter.all,
-            onTap: () => p.selectFilter(AlertFilter.all),
-          ),
-          const SizedBox(width: 8),
-          AlertFilterChip(
-            label: 'Bus Alerts',
-            selected: provider.selectedFilter == AlertFilter.busAlerts,
-            onTap: () => p.selectFilter(AlertFilter.busAlerts),
-          ),
-          const SizedBox(width: 8),
-          AlertFilterChip(
-            label: 'Route Updates',
-            selected: provider.selectedFilter == AlertFilter.routeUpdates,
-            onTap: () => p.selectFilter(AlertFilter.routeUpdates),
-          ),
-          const SizedBox(width: 8),
-          AlertFilterChip(
-            label: 'SOS Logs',
-            selected: provider.selectedFilter == AlertFilter.sosLogs,
-            onTap: () => p.selectFilter(AlertFilter.sosLogs),
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AlertFilterChip(
+                  label: 'All',
+                  count: provider.totalCount,
+                  selected: provider.selectedFilter == AlertFilter.all,
+                  onTap: () => p.selectFilter(AlertFilter.all),
+                ),
+                const SizedBox(width: 8),
+                AlertFilterChip(
+                  label: 'Bus Alerts',
+                  selected: provider.selectedFilter == AlertFilter.busAlerts,
+                  onTap: () => p.selectFilter(AlertFilter.busAlerts),
+                ),
+                const SizedBox(width: 8),
+                AlertFilterChip(
+                  label: 'Route Updates',
+                  selected: provider.selectedFilter == AlertFilter.routeUpdates,
+                  onTap: () => p.selectFilter(AlertFilter.routeUpdates),
+                ),
+                const SizedBox(width: 8),
+                AlertFilterChip(
+                  label: 'SOS Logs',
+                  selected: provider.selectedFilter == AlertFilter.sosLogs,
+                  onTap: () => p.selectFilter(AlertFilter.sosLogs),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -230,7 +281,9 @@ class AlertSectionLabel extends StatelessWidget {
             style: TextStyle(
               fontSize: 12,
               fontWeight: FontWeight.w600,
-              color: isArchived ? CustomColor.sectionArchivedText(context) : CustomColor.sectionUnreadText(context),
+              color: isArchived
+                  ? CustomColor.sectionArchivedText(context)
+                  : CustomColor.sectionUnreadText(context),
             ),
           ),
       ],
@@ -302,7 +355,9 @@ class AlertNotificationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: CustomColor.card_bg(context),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: CustomColor.notificationCardBorder(context, unread: notification.isUnread)),
+          border: Border.all(
+            color: CustomColor.notificationCardBorder(context, unread: notification.isUnread),
+          ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -326,7 +381,11 @@ class AlertNotificationCard extends StatelessWidget {
                           Flexible(
                             child: Text(
                               notification.title,
-                              style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.bold, color: CustomColor.textPrimary(context)),
+                              style: TextStyle(
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.bold,
+                                color: CustomColor.textPrimary(context),
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -335,7 +394,8 @@ class AlertNotificationCard extends StatelessWidget {
                             Container(
                               width: 7,
                               height: 7,
-                              decoration: const BoxDecoration(color: CustomColor.unreadDot, shape: BoxShape.circle),
+                              decoration:
+                              const BoxDecoration(color: CustomColor.unreadDot, shape: BoxShape.circle),
                             ),
                           ],
                         ],
@@ -351,7 +411,11 @@ class AlertNotificationCard extends StatelessWidget {
                             ),
                             child: Text(
                               notification.categoryLabel,
-                              style: TextStyle(fontSize: 10.5, fontWeight: FontWeight.w600, color: CustomColor.categoryPillText(context)),
+                              style: TextStyle(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w600,
+                                color: CustomColor.categoryPillText(context),
+                              ),
                             ),
                           ),
                           const SizedBox(width: 6),

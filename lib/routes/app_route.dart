@@ -11,5 +11,10 @@ class AppRoute {
   static const String triphistory = "/triphistory";
   static const String user_nav = "/user_nav";
   static const String p_sos="/p_sos";
+  static const String alert = "/alert";
+  static const String sos_contact = "/sos_contact";
+  static const String trackbus = "/trackbus";
+  static const String p_triphistory ="/p_triphostory";
+
 
 }

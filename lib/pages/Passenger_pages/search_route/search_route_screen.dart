@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../providers/passenger_provider/track_provider.dart';
+import '../../../providers/passenger_provider/search_route_provider.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/widgets/p_track_widets.dart';
 
@@ -20,16 +20,27 @@ import '../../../resources/widgets/p_track_widets.dart';
 ///   create: (_) => TrackProvider(),
 ///   child: const TrackScreen(),
 /// )
-class P_TrackScreen extends StatelessWidget {
-  const P_TrackScreen({super.key});
+class P_SearchRoute extends StatelessWidget {
+  const P_SearchRoute({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<TrackProvider>();
+    final provider = context.watch<SearchRouteProvider>();
 
-    return Container(
+    // NOTE: Wrapped in `Material` because this screen has no Scaffold of
+    // its own (the host screen owns that). Without a Material ancestor,
+    // InkWell/TextField/ElevatedButton etc. inside the child widgets throw
+    // "No Material widget found".
+    return Material(
       color: CustomColor.bg_color(context),
       child: Column(
+        // NOTE: `stretch` (not the default `center`) so the Column gives
+        // its children a bounded, full-width constraint. Without this the
+        // width constraint becomes unbounded going down into
+        // JourneyPlannerCard's `Row(mainAxisAlignment: spaceBetween)`,
+        // which is what produced the "RenderFlex overflowed by ~99849
+        // pixels" error.
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // Status strip: "Koshi Province Transit Grid" + "LIVE SYNC"
           const GridStatusBar(),

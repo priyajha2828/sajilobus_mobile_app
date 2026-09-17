@@ -3178,8 +3178,8 @@ class LiveRadarCard extends StatelessWidget {
 
 
 /// One nearby real-time bus card. Renders either the full "active" layout
-/// (nearest stop + capacity + track button) or the compact "maintenance"
-/// layout (a single warning row, no track button).
+/// (nearest stop + capacity + search_route button) or the compact "maintenance"
+/// layout (a single warning row, no search_route button).
 class LiveBusCard extends StatelessWidget {
   final LiveBus bus;
   final bool isBookmarked;
