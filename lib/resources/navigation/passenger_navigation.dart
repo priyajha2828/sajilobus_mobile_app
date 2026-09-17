@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../pages/Passenger_pages/alert/alert_screen.dart';
 import '../../pages/Passenger_pages/passenger_dashboard/passenger_dashboard.dart';
+import '../../pages/Passenger_pages/profile/profile_screen.dart';
 import '../../pages/Passenger_pages/track/track_screen.dart';
 import '../color/custom_color.dart';
 
@@ -22,7 +23,7 @@ class _UserNavScreen
     const TransitHomeScreen(),
     const P_TrackScreen(),
      const AlertsScreen(),
-    // const DriverProfileScreen(),
+    const PassengerProfileScreen(),
   ];
 
   @override
