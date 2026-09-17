@@ -77,7 +77,7 @@ class PassengerSosProvider extends ChangeNotifier {
   final String gpsCoordinates = '26.4525° N, 87.2718° E';
   final String gpsSubtext = 'Near Tankisinuwari Chowk, Koshi Rajmarg';
 
-  // ---------------- Vehicle track row ----------------
+  // ---------------- Vehicle search_route row ----------------
   final String vehiclePlate = 'BA 2 KHA 8492';
   final String vehicleBadge = 'Koshi Express';
   final String routeLabel = 'Route 104: Biratnagar → Itahari';

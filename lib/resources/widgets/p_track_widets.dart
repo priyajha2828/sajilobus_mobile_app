@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../providers/passenger_provider/track_provider.dart';
+import '../../providers/passenger_provider/search_route_provider.dart';
 import '../color/custom_color.dart';
 
 
@@ -44,7 +44,7 @@ class GridStatusBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<TrackProvider>();
+    final provider = context.watch<SearchRouteProvider>();
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -181,8 +181,8 @@ class JourneyPlannerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<TrackProvider>();
-    final p = context.read<TrackProvider>();
+    final provider = context.watch<SearchRouteProvider>();
+    final p = context.read<SearchRouteProvider>();
 
     return SectionCard(
       child: Column(
@@ -268,8 +268,8 @@ class TrackTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<TrackProvider>();
-    final p = context.read<TrackProvider>();
+    final provider = context.watch<SearchRouteProvider>();
+    final p = context.read<SearchRouteProvider>();
 
     Widget tab({
       required TrackTab tab,
@@ -479,7 +479,7 @@ class TransitRouteCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.read<TrackProvider>();
+    final p = context.read<SearchRouteProvider>();
 
     return Container(
       decoration: BoxDecoration(
@@ -681,7 +681,7 @@ class NearbyStopTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.read<TrackProvider>();
+    final p = context.read<SearchRouteProvider>();
     return InkWell(
       onTap: () => p.openStop(stop),
       borderRadius: BorderRadius.circular(14),
@@ -774,7 +774,7 @@ class LiveRadarBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final p = context.read<TrackProvider>();
+    final p = context.read<SearchRouteProvider>();
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(

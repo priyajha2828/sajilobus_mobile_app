@@ -673,7 +673,7 @@ class CustomColor {
   static const Color routeQuickTrackBg = onDark;
   static const Color routeQuickTrackText = primary;
 
-  /// Progress track/fill for the route's live position bar (drawn on the
+  /// Progress search_route/fill for the route's live position bar (drawn on the
   /// dark promo card).
   static const Color routeProgressTrack = onDarkFaint;
   static const Color routeProgressFill = onDark;
@@ -1059,7 +1059,7 @@ class CustomColor {
 
   static Color gpsCardIcon(BuildContext context) => primary;
 
-  /// Vehicle track row badges.
+  /// Vehicle search_route row badges.
   static Color vehicleBadgeBg(BuildContext context) => chipBg(context);
   static Color vehicleBadgeText(BuildContext context) => chipText(context);
 
@@ -1198,4 +1198,261 @@ class CustomColor {
   /// Divider between rows inside a card.
   static Color rowDivider(BuildContext context) =>
       isDark(context) ? const Color(0xFF374151) : const Color(0xFFF0F1F5);
+
+  // ---------------------------------------------------------------------
+  // Additions below — needed specifically for the Passenger SOS /
+  // "Trusted Safety Circle" screen.
+  // ---------------------------------------------------------------------
+
+  /// "Trusted Safety Circle" info banner.
+  static Color sosBannerBg(BuildContext context) =>
+      isDark(context) ? const Color(0x2660A5FA) : const Color(0xFFDCEBFC);
+  static const Color sosBannerIconBg = Color(0xFF0F2A5C);
+  static Color sosBannerText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFD7E6FA) : const Color(0xFF25405E);
+
+  /// "Active" chip on the banner.
+  static const Color activeChipBg = Color(0xFFDDF4E1);
+  static const Color activeChipText = greenDark;
+
+  /// Contact avatar backgrounds (rotate across contacts).
+  static const List<Color> contactAvatarBg = [
+    Color(0xFF0E7C86),
+    Color(0xFF1D4ED8),
+    Color(0xFF7C3AED),
+    Color(0xFFB45309),
+  ];
+
+  /// Small relation badge on the avatar (star = primary, heart = other).
+  static const Color badgePrimaryBg = success;
+  static const Color badgeSecondaryBg = Color(0xFF2563EB);
+
+  /// Relationship / role chips ("Father", "Sister").
+  static Color relationChipBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFEFF1F8);
+  static Color relationChipText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFD1D5DB) : const Color(0xFF374151);
+
+  /// "Primary" chip.
+  static const Color primaryChipBg = Color(0xFFDDF4E1);
+  static const Color primaryChipText = greenDark;
+
+
+  /// Round action buttons (call / edit / delete) on a contact card.
+  static Color callBtnBg(BuildContext context) =>
+      isDark(context) ? const Color(0x262563EB) : const Color(0xFFE8EFFD);
+  static const Color callBtnIcon = Color(0xFF2563EB);
+  static Color editBtnBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFF3F4F6);
+  static Color editBtnIcon(BuildContext context) =>
+      isDark(context) ? const Color(0xFFD1D5DB) : const Color(0xFF4B5563);
+  static Color deleteBtnBg(BuildContext context) =>
+      isDark(context) ? const Color(0x26DC2626) : const Color(0xFFFCE9E9);
+  static const Color deleteBtnIcon = danger;
+
+  /// "Add Emergency Contact" form card.
+  static Color formFieldBg(BuildContext context) => inputBg(context);
+  static Color formFieldBorder(BuildContext context) =>
+      inputBorderDefault(context);
+  static Color formLabel(BuildContext context) => textMutedLabel(context);
+  static Color countryCodeChipBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFEFF1F8);
+
+  /// Primary submit button ("+ Add New Trusted Contact").
+  static const Color submitBtnBg = primary;
+  static const Color submitBtnText = Colors.white;
+
+  /// "Verified by Nepal Police..." strip.
+  static Color verifiedStripBg(BuildContext context) =>
+      isDark(context) ? const Color(0x2616A34A) : const Color(0xFFEAF8ED);
+  static Color verifiedStripText(BuildContext context) =>
+      isDark(context) ? const Color(0xFFBBF7D0) : const Color(0xFF15803D);
+
+  /// "Test Alert Dispatch" card.
+  static Color testAlertBg(BuildContext context) =>
+      isDark(context) ? const Color(0x26F59E0B) : const Color(0xFFFCEEE9);
+  static const Color testAlertIconBg = Color(0xFFFCE0D6);
+  static const Color testAlertIcon = Color(0xFFEA580C);
+  static const Color testLinkBorder = primary;
+  static const Color testLinkText = primary;
+  // ---- Added for Passenger SOS / Trusted Safety Circle screen ----
+  // Relationship / badge accent colors
+  static const Color pink = Color(0xFFDB2777);
+  static const Color pinkBg = Color(0xFFFCE7F3);
+  static const Color teal = Color(0xFF0F766E);
+  static const Color tealBg = Color(0xFFCCFBF1);
+  static const Color blueBadgeBg = Color(0xFFDBEAFE);
+  static const Color blueBadgeText = Color(0xFF1D4ED8);
+  static const Color greenBadgeBg = Color(0xFFDCFCE7);
+  static const Color greenBadgeText = Color(0xFF15803D);
+  static const Color pinkBadgeBg = Color(0xFFFCE7F3);
+  static const Color pinkBadgeText = Color(0xFFDB2777);
+
+  // Trusted safety circle hero banner
+  static Color heroBannerBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A5F) : const Color(0xFFE8F0FE);
+  static Color heroIconBg(BuildContext context) =>
+      isDark(context) ? primary.withOpacity(0.4) : primary;
+
+  // Verified banner (green tinted)
+  static Color verifiedBg1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14532D) : const Color(0xFFECFDF5);
+  static Color verifiedText1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF86EFAC) : greenDark;
+
+  // Test alert (amber/orange tinted)
+  static Color testAlertIconBg1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF7C2D12) : const Color(0xFFFFF1EA);
+  static Color testAlertIcon1(BuildContext context) =>
+      isDark(context) ? const Color(0xFFFDBA74) : const Color(0xFFEA580C);
+
+  static Color notificationDot1(BuildContext context) => danger;
+
+  static Color iconMuted1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+
+  static Color divider(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  static Color deleteIconBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF3B1E1E) : const Color(0xFFFEF2F2);
+
+  static Color editIconBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E293B) : const Color(0xFFF3F4F6);
+
+  static Color callIconBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14324D) : const Color(0xFFE8F0FE);
+
+  // Background
+  static Color background1(BuildContext context) {
+    return isDark(context) ? const Color(0xFF111827) : const Color(0xFFF5F7FB);
+  }
+// =========================================================
+  // TRACK SCREEN (Passenger) — added theme aware colors
+  // =========================================================
+
+  /// Strong action blue used for the selected filter chip,
+  /// "Book Again" button and the Route badge.
+  static const Color actionBlue = Color(0xFF1D4ED8);
+
+  /// Lighter accent blue used for link-like text and numbers.
+  static const Color accentBlue1 = Color(0xFF2563EB);
+
+  /// Soft blue tint behind stat boxes, chips and info strips.
+  static Color softBlue(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E293B) : const Color(0xFFEFF4FE);
+
+  /// Slightly deeper soft blue — reward banner / highlighted rows.
+  static Color softBlueStrong(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A5F) : const Color(0xFFDDE7FD);
+
+  /// Background of the search field.
+  static Color searchBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : Colors.white;
+
+  /// Unselected filter chip background.
+  static Color chipBg1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : const Color(0xFFEFF3FA);
+
+  /// Unselected filter chip text.
+  static Color chipText1(BuildContext context) =>
+      isDark(context) ? const Color(0xFFD1D5DB) : const Color(0xFF374151);
+
+  /// Pale green pill background (Verified Ticket, CO2 saved).
+  static Color successSoft(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14532D) : const Color(0xFFE8F8EE);
+
+  /// Placeholder / fallback surface behind the recorded map search_route.
+  static Color mapSurface1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF243447) : const Color(0xFFE8EEF3);
+
+  /// Thin divider used in section headers.
+  static Color divider1(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE3E8F0);
+
+  /// Secondary (light) button background — "View e-Receipt".
+  static Color buttonSoft(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E293B) : const Color(0xFFEAF1FE);
+
+  /// Timeline rail connecting the boarding and drop points.
+  static Color timelineRail(BuildContext context) =>
+      isDark(context) ? const Color(0xFF475569) : const Color(0xFF9AA7BD);
+
+  // ======================================================================
+  // Added for: Passenger SOS / Live Vehicle Tracker screen
+  // ======================================================================
+
+  /// Map canvas background (the pale blue map area behind the route line).
+  static Color mapBackground(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E293B) : const Color(0xFFDCE7FB);
+
+  /// The dashed diagonal route/path line drawn on the map.
+  static Color routeLine(BuildContext context) =>
+      isDark(context) ? const Color(0xFF60A5FA) : const Color(0xFF3B82F6);
+
+  /// Outer ring / pulse behind the live bus marker on the map.
+  static Color busMarkerRing(BuildContext context) =>
+      isDark(context) ? const Color(0x554F8EF7) : const Color(0x554F8EF7);
+
+  /// Solid fill of the live bus marker.
+  static const Color busMarkerFill = primary;
+
+  /// "Route 104" pill background.
+  static const Color routePillBg = primary;
+
+  /// GPS / live status dot (green = healthy signal).
+  static const Color gpsActiveDot = success;
+
+  /// Floating circular map controls (locate / layers) background.
+  static Color mapControlBg1(BuildContext context) => card(context);
+
+  /// "You are here" tooltip background.
+  static const Color hereTooltipBg = primary;
+
+  /// "Fast Express" tag background / text.
+  static Color tagBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A8A) : const Color(0xFFEAF1FF);
+
+  static Color tagText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF93C5FD) : primary;
+
+  /// "ACTIVE" status pill.
+  static Color activeBadgeBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF14532D) : const Color(0xFFDCFCE7);
+
+  static Color activeBadgeText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4ADE80) : greenDark;
+
+  /// Crowd meter progress search_route / fill.
+  static Color progressTrack(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFE5E7EB);
+
+  static const Color progressFill = primary;
+
+  /// Route milestone timeline dot colors.
+  static Color milestonePassed(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4B5563) : const Color(0xFF9CA3AF);
+
+  static const Color milestoneCurrent = primary;
+  static const Color milestoneDestination = success;
+  static Color milestoneUpcoming(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4B5563) : const Color(0xFFD1D5DB);
+
+  /// "NOW" badge on the current milestone.
+  static Color nowBadgeBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1E3A8A) : const Color(0xFFEAF1FF);
+
+  static Color nowBadgeText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF93C5FD) : primary;
+
+  /// Bottom action bar buttons (Alert / Share).
+  static Color secondaryActionBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : const Color(0xFFEEF2FF);
+
+  static Color secondaryActionText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF93C5FD) : primary;
+
+  /// SOS button.
+  static const Color sosText = Colors.white;
+
 }

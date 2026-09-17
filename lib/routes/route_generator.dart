@@ -4,12 +4,16 @@ import 'package:sajilo_bus/pages/Driver_pages/history/history_screen.dart';
 import 'package:sajilo_bus/pages/Driver_pages/issue/issue_screen.dart';
 import 'package:sajilo_bus/pages/Driver_pages/trip/trip_screen.dart';
 import 'package:sajilo_bus/pages/Passenger_pages/passenger_dashboard/passenger_dashboard.dart';
+import 'package:sajilo_bus/pages/Passenger_pages/search_route/search_route_screen.dart';
 import 'package:sajilo_bus/pages/auth_pages/loginpage.dart';
 import 'package:sajilo_bus/resources/navigation/passenger_navigation.dart';
 
 import '../pages/Driver_pages/driver_dashboard/driver_dashboard.dart';
 import '../pages/Driver_pages/sos/sos_page.dart';
+import '../pages/Passenger_pages/alert/alert_screen.dart';
 import '../pages/Passenger_pages/sos/sos_screen.dart';
+import '../pages/Passenger_pages/sos_contact/sos_contact_screen.dart';
+import '../pages/Passenger_pages/triphistory/trip_history_screen.dart';
 import '../pages/auth_pages/signup_page.dart';
 import '../resources/navigation/driver_nav.dart';
 import 'app_route.dart';
@@ -42,6 +46,14 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_)=> const UserNavScreen());
       case AppRoute.p_sos:
         return MaterialPageRoute(builder: (_)=> const PassengerSosScreen());
+      case AppRoute.alert:
+        return MaterialPageRoute(builder: (_)=> const AlertsScreen());
+      case AppRoute.sos_contact:
+        return MaterialPageRoute(builder: (_)=> const PassengerSosContactScreen());
+      case AppRoute.trackbus:
+        return MaterialPageRoute(builder: (_)=> const  P_SearchRoute());
+      case AppRoute.p_triphistory:
+        return MaterialPageRoute(builder: (_)=> const P_TripHistoryScreen());
       default:
         return _errorRoute();
     }

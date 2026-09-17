@@ -76,8 +76,8 @@ class NearbyBusStop {
 /// Tabs shown under the Journey Planner card.
 enum TrackTab { allRoutes, nearbyStops, activeBuses }
 
-class TrackProvider extends ChangeNotifier {
-  TrackProvider() {
+class SearchRouteProvider extends ChangeNotifier {
+  SearchRouteProvider() {
     fromController.text = fromLocation;
     toController.text = toLocation;
   }

@@ -154,12 +154,13 @@ class TransitHomeProvider extends ChangeNotifier {
 
   // ---------------- Quick Transit Hub ----------------
   final List<QuickAction> quickActions = [
-    QuickAction(icon: Icons.map_outlined, label: 'Track Bus'),
-    const QuickAction(icon: Icons.alt_route, label: 'Search Route'),
-    const QuickAction(icon: Icons.notifications_none_rounded, label: 'Alerts', badgeCount: 2),
+    QuickAction(icon: Icons.map_outlined, label: 'Track Bus',),
+    QuickAction(icon: Icons.alt_route, label: 'Search Route',onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.trackbus)),
+    QuickAction(icon: Icons.notifications_none_rounded, label: 'Alerts', badgeCount: 2,onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.alert)),
     QuickAction(icon: Icons.sos_rounded, label: 'SOS Panic', isHighlighted: true,onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.p_sos)),
-    const QuickAction(icon: Icons.history_outlined, label: 'Trip Log'),
-    const QuickAction(icon: Icons.shield_outlined, label: 'Contacts'),
+    QuickAction(icon: Icons.history_outlined, label: 'Trip Log',onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.p_triphistory)),
+    QuickAction(icon: Icons.shield_outlined, label: 'Contacts',onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.sos_contact)
+    ),
   ];
 
   void openQuickAction(String label) {
