@@ -4,14 +4,14 @@ import 'package:sajilo_bus/routes/app_route.dart';
 
 import '../../../providers/driver_provider/issue_provider.dart';
 import '../../../resources/badge/badge.dart';
-import '../../../resources/banner/driver_banner.dart';
+import '../../../resources/banner/custom_banner.dart';
 import '../../../resources/bottom/driver_button.dart';
 import '../../../resources/card/custom_card.dart';
 import '../../../resources/chip/custom_chip.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/header/custom_header.dart';
 import '../../../resources/tile/custom_tile.dart';
-import '../../../resources/widgets/driver_widgets.dart';
+import '../../../resources/widgets/custom_widgets.dart';
 
 
 /// "Report Operational Issue" screen from FleetTrack.

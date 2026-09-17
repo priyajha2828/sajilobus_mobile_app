@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/driver_provider/history_provider.dart';
 import '../../providers/driver_provider/issue_provider.dart';
+import '../../providers/passenger_provider/sos_provider.dart';
+import '../badge/badge.dart';
+import '../bottom/driver_button.dart';
 import '../card/custom_card.dart';
 import '../chip/custom_chip.dart';
 import '../color/custom_color.dart';
@@ -754,6 +757,369 @@ class _PointRow extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// "HIGH-PRECISION TELEMETRY LOCK" status row with an accuracy badge.
+class TelemetryStatusRow extends StatelessWidget {
+  final String label;
+  final String accuracyLabel;
+
+  const TelemetryStatusRow({
+    super.key,
+    required this.label,
+    required this.accuracyLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Icon(Icons.settings_input_antenna,
+            size: 18, color: CustomColor.telemetryIcon(context)),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.3,
+              color: CustomColor.textPrimary(context),
+            ),
+          ),
+        ),
+        InfoBadge(
+          label: accuracyLabel,
+          icon: Icons.circle,
+          background: CustomColor.badgeGreenBg(context),
+          foreground: CustomColor.badgeGreenText(context),
+        ),
+      ],
+    );
+  }
+}
+
+
+/// Row showing the tracked vehicle's plate, route, and live speed.
+class VehicleTrackRow extends StatelessWidget {
+  final String plateNumber;
+  final String badge;
+  final String routeLabel;
+  final String speedLabel;
+
+  const VehicleTrackRow({
+    super.key,
+    required this.plateNumber,
+    required this.badge,
+    required this.routeLabel,
+    required this.speedLabel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: CustomColor.card(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: CustomColor.border(context)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: CustomColor.primary,
+              borderRadius: BorderRadius.circular(9),
+            ),
+            child: const Icon(Icons.directions_bus_filled_outlined,
+                size: 18, color: CustomColor.onDark),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        plateNumber,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: CustomColor.textPrimary(context),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: CustomColor.vehicleBadgeBg(context),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Text(
+                        badge,
+                        style: TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: CustomColor.vehicleBadgeText(context),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  routeLabel,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            decoration: BoxDecoration(
+              color: CustomColor.speedBadgeBg(context),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              speedLabel,
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                color: CustomColor.speedBadgeText(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+
+/// Horizontal 3-stage stepper: Pending → In Progress → Resolved.
+class DispatchLifecycleStepper extends StatelessWidget {
+  final DispatchStage currentStage;
+
+  const DispatchLifecycleStepper({super.key, required this.currentStage});
+
+  @override
+  Widget build(BuildContext context) {
+    final stages = DispatchStage.values;
+    return Row(
+      children: [
+        for (int i = 0; i < stages.length; i++) ...[
+          Expanded(
+            child: _StageNode1(stage: stages[i], state: _stateFor(stages[i])),
+          ),
+          if (i != stages.length - 1)
+            Expanded(
+              child: Container(
+                height: 2,
+                margin: const EdgeInsets.only(bottom: 30),
+                color: i < currentStage.index
+                    ? CustomColor.stepperActive
+                    : CustomColor.stepperLine(context),
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  NodeState1 _stateFor(DispatchStage stage) {
+    if (stage.index < currentStage.index) return NodeState1.done;
+    if (stage.index == currentStage.index) return NodeState1.active;
+    return NodeState1.pending;
+  }
+}
+
+enum NodeState1{ done, active, pending }
+
+class _StageNode1 extends StatelessWidget {
+  final DispatchStage stage;
+  final NodeState1 state;
+
+  const _StageNode1({required this.stage, required this.state});
+
+  @override
+  Widget build(BuildContext context) {
+    Color circleColor;
+    Color labelColor;
+
+    switch (state) {
+      case NodeState1.done:
+        circleColor = CustomColor.stepperDone;
+        labelColor = CustomColor.textPrimary(context);
+        break;
+      case NodeState1.active:
+        circleColor = CustomColor.stepperActive;
+        labelColor = CustomColor.stepperLabelActive(context);
+        break;
+      case NodeState1.pending:
+        circleColor = CustomColor.stepperPending(context);
+        labelColor = CustomColor.stepperLabelMuted(context);
+        break;
+    }
+
+    final filled = state != NodeState1.pending;
+
+    return Column(
+      children: [
+        Container(
+          width: 30,
+          height: 30,
+          decoration: BoxDecoration(
+            color: filled ? circleColor : Colors.transparent,
+            shape: BoxShape.circle,
+            border: filled ? null : Border.all(color: circleColor, width: 2),
+          ),
+          child: Icon(
+            stage.icon,
+            size: 14,
+            color: filled ? CustomColor.onDark : circleColor,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          stage.label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 0.3,
+            color: labelColor,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          stage.subLabel,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 10,
+            color: CustomColor.stepperLabelMuted(context),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+
+/// The large pink "Critical Response Initiator" panel containing the
+/// hold-to-activate SOS button and its explanatory text.
+class CriticalResponsePanel extends StatelessWidget {
+  final double holdProgress;
+  final bool isHolding;
+  final bool activated;
+  final VoidCallback onHoldStart;
+  final VoidCallback onHoldEnd;
+  final String policeContactLabel;
+  final int emergencyContactCount;
+
+  const CriticalResponsePanel({
+    super.key,
+    required this.holdProgress,
+    required this.isHolding,
+    required this.activated,
+    required this.onHoldStart,
+    required this.onHoldEnd,
+    required this.policeContactLabel,
+    required this.emergencyContactCount,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 28, horizontal: 20),
+      decoration: BoxDecoration(
+        color: CustomColor.criticalPanelBg(context),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            left: -30,
+            bottom: -30,
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: const BoxDecoration(
+                color: CustomColor.criticalPanelAccentBlob,
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.priority_high,
+                      size: 14, color: CustomColor.criticalLabelColor(context)),
+                  const SizedBox(width: 4),
+                  Text(
+                    'CRITICAL RESPONSE INITIATOR',
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                      color: CustomColor.criticalLabelColor(context),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              SosHoldButton(
+                progress: holdProgress,
+                isHolding: isHolding,
+                activated: activated,
+                onHoldStart: onHoldStart,
+                onHoldEnd: onHoldEnd,
+              ),
+              const SizedBox(height: 24),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: RichText(
+                  textAlign: TextAlign.center,
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.4,
+                      color: CustomColor.criticalDescriptionText(context),
+                    ),
+                    children: [
+                      const TextSpan(text: 'Instantly alerts '),
+                      TextSpan(
+                        text: policeContactLabel,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      TextSpan(
+                        text:
+                        ' and your $emergencyContactCount designated emergency '
+                            'contacts with encrypted live GPS updates.',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

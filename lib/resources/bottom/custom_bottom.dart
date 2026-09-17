@@ -48,3 +48,66 @@ class LoginPageButton extends StatelessWidget {
     );
   }
 }
+
+/// One emergency call button (e.g. "Call 100 / Nepal Police Hotline").
+class CallActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color iconColor;
+  final Color background;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const CallActionButton({
+    super.key,
+    required this.icon,
+    required this.iconColor,
+    required this.background,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w800,
+                      color: CustomColor.textPrimary(context),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 10,
+                      color: CustomColor.textSecondary(context),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

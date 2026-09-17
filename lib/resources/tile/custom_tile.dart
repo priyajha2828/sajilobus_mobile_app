@@ -1314,7 +1314,9 @@ class QuickActionTile extends StatelessWidget {
     final iconColor = isHighlighted ? CustomColor.sosTileText : CustomColor.categoryTileIcon(context);
     final textColor = isHighlighted ? CustomColor.sosTileText : CustomColor.textPrimary(context);
 
-    return InkWell(
+    return Material(
+      color: Colors.transparent,
+      child:InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: onTap,
       child: Container(
@@ -1353,6 +1355,7 @@ class QuickActionTile extends StatelessWidget {
                         ),
                       ),
                     ),
+
                   ),
               ],
             ),
@@ -1364,6 +1367,80 @@ class QuickActionTile extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
                 color: textColor,
+              ),
+            ),
+          ],
+        ),
+      ),
+      )
+    );
+  }
+}
+
+
+/// One tile in the "Nature of Emergency" 2x2 grid.
+class EmergencyTypeTile1 extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String subtitle;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const EmergencyTypeTile1({
+    super.key,
+    required this.icon,
+    required this.label,
+    required this.subtitle,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = selected
+        ? CustomColor.emergencySelectedBg(context)
+        : CustomColor.categoryTileBg(context);
+    final border = selected
+        ? CustomColor.emergencySelectedBorder(context)
+        : CustomColor.categoryTileBorder(context);
+    final iconColor = selected
+        ? CustomColor.emergencySelectedIcon(context)
+        : CustomColor.categoryTileIcon(context);
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: bg,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: border, width: selected ? 1.5 : 1),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: iconColor),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: selected ? iconColor : CustomColor.textPrimary(context),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: CustomColor.textSecondary(context),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

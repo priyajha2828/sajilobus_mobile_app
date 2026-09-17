@@ -9,6 +9,7 @@ import 'package:sajilo_bus/resources/navigation/passenger_navigation.dart';
 
 import '../pages/Driver_pages/driver_dashboard/driver_dashboard.dart';
 import '../pages/Driver_pages/sos/sos_page.dart';
+import '../pages/Passenger_pages/sos/sos_screen.dart';
 import '../pages/auth_pages/signup_page.dart';
 import '../resources/navigation/driver_nav.dart';
 import 'app_route.dart';
@@ -39,6 +40,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_)=> const TripManifestScreen());
       case AppRoute.user_nav:
         return MaterialPageRoute(builder: (_)=> const UserNavScreen());
+      case AppRoute.p_sos:
+        return MaterialPageRoute(builder: (_)=> const PassengerSosScreen());
       default:
         return _errorRoute();
     }

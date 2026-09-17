@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/driver_provider/notifications_provider.dart';
-import '../../../resources/banner/driver_banner.dart';
+import '../../../resources/banner/custom_banner.dart';
 import '../../../resources/bottom/driver_button.dart';
 import '../../../resources/card/custom_card.dart';
 import '../../../resources/color/custom_color.dart';
