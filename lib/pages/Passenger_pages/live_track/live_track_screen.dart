@@ -17,8 +17,8 @@ import '../../../resources/widgets/live_track_widgets.dart';
 ///   child: const PassengerSosScreen(),
 /// )
 /// ```
-class PassengerSosScreen extends StatelessWidget {
-  const PassengerSosScreen({super.key});
+class LiveTrackScreen extends StatelessWidget {
+  const LiveTrackScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
