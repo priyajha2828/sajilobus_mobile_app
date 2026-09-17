@@ -219,9 +219,10 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: CustomColor.transitHeaderBg(context),
+
       padding: const EdgeInsets.fromLTRB(8, 8, 16, 10),
       decoration: BoxDecoration(
+        color: CustomColor.transitHeaderBg(context),
         border: Border(bottom: BorderSide(color: CustomColor.border(context))),
       ),
       child: Row(

@@ -1125,4 +1125,77 @@ class CustomColor {
 
   /// Footer "Return to Navigation Safely" link.
   static Color footerLinkColor(BuildContext context) => textSecondary(context);
+  // ---------------------------------------------------------------------
+  // Additions below — needed specifically for the Profile screen.
+  // Kept in the same file/style so the whole app keeps one color source.
+  // ---------------------------------------------------------------------
+
+  /// AppBar background (white on light, surface-dark on dark).
+  static Color appBarBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1F2937) : Colors.white;
+
+  /// Small red dot on the notification bell.
+  static const Color notificationDot = Color(0xFFEF4444);
+
+  /// Circular icon-button background (bell / avatar wrapper) on the AppBar.
+  static Color iconCircleBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFF3F4F6);
+
+  /// "Verified Citizen ID" chip.
+  static Color verifiedBg(BuildContext context) =>
+      isDark(context) ? const Color(0x2616A34A) : const Color(0xFFE9F9EF);
+  static const Color verifiedText = success;
+
+  /// Edit pencil badge on the profile avatar.
+  static const Color editBadgeBg = primary;
+
+  /// Transit card gradient (dark navy → indigo, matches screenshot).
+  static const List<Color> transitCardGradient = [
+    Color(0xFF16213E),
+    Color(0xFF23306E),
+  ];
+  static const Color transitCardActiveBg = Color(0x33FFFFFF);
+  static const Color transitCardActiveText = Colors.white;
+  static const Color transitCardMuted = Color(0xFFB9C0DE);
+
+  /// Emergency SOS circular icon background / text.
+  static const Color sosIcon = danger;
+
+  /// "Live Session" chip.
+  static Color liveSessionBg(BuildContext context) =>
+      isDark(context) ? const Color(0x2616A34A) : const Color(0xFFE9F9EF);
+  static const Color liveSessionDot = success;
+  static const Color liveSessionText = success;
+
+  /// Auth UID pill background.
+  static Color pillBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFF3F4F6);
+
+  /// Section header icon circle background (preferences / help desk / auth).
+  static Color sectionIconBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFEFF1F8);
+  static Color sectionIconColor(BuildContext context) =>
+      isDark(context) ? Colors.white70 : primary;
+
+  /// Switch colors.
+  static const Color switchActive = Color(0xFF22C55E);
+  static Color switchTrackInactive(BuildContext context) =>
+      isDark(context) ? const Color(0xFF4B5563) : const Color(0xFFE5E7EB);
+
+  /// Language segmented toggle.
+  static Color segmentBg(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFF3F4F6);
+  static const Color segmentSelectedBg = primary;
+  static const Color segmentSelectedText = Colors.white;
+  static Color segmentUnselectedText(BuildContext context) =>
+      isDark(context) ? const Color(0xFF9CA3AF) : const Color(0xFF6B7280);
+
+  /// Logout button.
+  static Color logoutBg(BuildContext context) =>
+      isDark(context) ? const Color(0x26DC2626) : const Color(0xFFFDEBEB);
+  static const Color logoutText = danger;
+
+  /// Divider between rows inside a card.
+  static Color rowDivider(BuildContext context) =>
+      isDark(context) ? const Color(0xFF374151) : const Color(0xFFF0F1F5);
 }
