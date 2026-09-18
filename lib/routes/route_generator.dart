@@ -11,6 +11,7 @@ import 'package:sajilo_bus/resources/navigation/passenger_navigation.dart';
 import '../pages/Driver_pages/driver_dashboard/driver_dashboard.dart';
 import '../pages/Driver_pages/sos/sos_page.dart';
 import '../pages/Passenger_pages/alert/alert_screen.dart';
+import '../pages/Passenger_pages/live_track/live_track_screen.dart';
 import '../pages/Passenger_pages/sos/sos_screen.dart';
 import '../pages/Passenger_pages/sos_contact/sos_contact_screen.dart';
 import '../pages/Passenger_pages/triphistory/trip_history_screen.dart';
@@ -54,6 +55,8 @@ class RouteGenerator {
         return MaterialPageRoute(builder: (_)=> const  P_SearchRoute());
       case AppRoute.p_triphistory:
         return MaterialPageRoute(builder: (_)=> const P_TripHistoryScreen());
+      case AppRoute.live_track:
+        return MaterialPageRoute(builder: (_)=> const LiveTrackScreen());
       default:
         return _errorRoute();
     }

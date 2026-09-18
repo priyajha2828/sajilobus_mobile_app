@@ -15,6 +15,7 @@ class AppRoute {
   static const String sos_contact = "/sos_contact";
   static const String trackbus = "/trackbus";
   static const String p_triphistory ="/p_triphostory";
+  static const String live_track = "/live_track";
 
 
 }

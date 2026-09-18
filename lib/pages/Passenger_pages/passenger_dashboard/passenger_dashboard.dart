@@ -167,7 +167,7 @@ class _TopBar extends StatelessWidget {
                 Text(
                   provider.appName,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     letterSpacing: 0.6,
                     color: CustomColor.primary,

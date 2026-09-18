@@ -12,6 +12,7 @@ import 'package:sajilo_bus/providers/driver_provider/stop_management_provider.da
 import 'package:sajilo_bus/providers/driver_provider/trip_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/alert_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/dashboard_provider.dart';
+import 'package:sajilo_bus/providers/passenger_provider/live_track_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/profile_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/sos_contact_provider.dart';
 import 'package:sajilo_bus/providers/passenger_provider/sos_provider.dart';
@@ -54,6 +55,7 @@ void main() async{
         ChangeNotifierProvider(create: (_)=>ProfileProvider()),
         ChangeNotifierProvider(create: (_)=> PassengerSosContactProvider()),
         ChangeNotifierProvider(create: (_)=> P_TripHistoryProvider()),
+        ChangeNotifierProvider(create: (_)=> LiveTrackProvider()),
       ],
       child: const MyApp(),
     ),

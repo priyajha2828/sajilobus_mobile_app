@@ -1,265 +1,288 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sajilo_bus/routes/app_route.dart';
 
 import '../../../providers/passenger_provider/live_track_provider.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/widgets/live_track_widgets.dart';
 
-
-/// Live Vehicle Tracker body.
-///
-/// This screen intentionally has NO Scaffold app bar — it's designed to be
-/// dropped inside your existing navigation shell / bottom nav host, e.g.:
-///
-/// ```dart
-/// ChangeNotifierProvider(
-///   create: (_) => VehicleTrackerProvider()..startListening(),
-///   child: const PassengerSosScreen(),
-/// )
-/// ```
+/// =========================================================
+/// LIVE VEHICLE TRACKER SCREEN
+/// Map fills the background, a draggable sheet sits on top.
+/// No bottom navigation bar here.
+/// =========================================================
 class LiveTrackScreen extends StatelessWidget {
   const LiveTrackScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final provider = context.watch<VehicleTrackerProvider>();
+    final track = context.watch<LiveTrackProvider>();
 
-    return Container(
-      color: CustomColor.bg_color(context),
-      child: Column(
+    return Scaffold(
+      backgroundColor: CustomColor.background(context),
+
+      appBar: LiveTrackAppBar(
+        title: track.screenTitle,
+        avatarUrl: track.avatarUrl,
+        onBack: () => track.goBack(context),
+        onAvatarTap: track.openProfile,
+      ),
+
+      body: Stack(
         children: [
-          Expanded(
-            child: Stack(
-              children: [
-                // ---- Map ----
-                LiveMapPanel(
-                  nextStopLabel: '${provider.nextStopName} (2m)',
-                  vehiclePlate: provider.vehiclePlate,
-                  onLocatePressed: provider.recenterMap,
-                  onLayersPressed: () {},
-                ),
-
-                // ---- Top floating pills ----
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  right: 12,
-                  child: Row(
-                    children: [
-                      RoutePill(
-                        routeNumber: provider.routeNumber,
-                        from: provider.routeFrom,
-                        to: provider.routeTo,
-                      ),
-                      const Spacer(),
-                      GpsStatusBadge(
-                        signalPercent: provider.gpsSignalPercent,
-                        updatedSecondsAgo: provider.gpsLastUpdatedSeconds,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          // ---------------- MAP ----------------
+          Positioned.fill(
+            child: _MapArea(track: track),
           ),
 
-          // ---- Bottom sheet content ----
-          Container(
-            decoration: BoxDecoration(
-              color: CustomColor.bg_color(context),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  const SheetDragHandle(),
-
-                  // ---- Vehicle info ----
-                  VehicleInfoCard(
-                    vehiclePlate: provider.vehiclePlate,
-                    fullPlateNumber: provider.fullPlateNumber,
-                    driverName: provider.driverName,
-                    serviceTag: provider.serviceTag,
-                    isActive: provider.isActive,
+          // ---------------- BOTTOM SHEET ----------------
+          DraggableScrollableSheet(
+            initialChildSize: .62,
+            minChildSize: .42,
+            maxChildSize: .92,
+            builder: (context, scrollController) {
+              return Container(
+                decoration: BoxDecoration(
+                  color: CustomColor.card(context),
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(24),
                   ),
-                  const SizedBox(height: 16),
-
-                  // ---- Stat grid ----
-                  Row(
-                    children: [
-                      Expanded(
-                        child: StatCard(
-                          label: 'ARRIVAL IN',
-                          icon: Icons.access_time,
-                          valueWidget: Text(
-                            '${provider.arrivalEtaMinutes} mins',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: CustomColor.primary,
-                            ),
-                          ),
-                          footer: 'Live ETA to pickup',
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: StatCard(
-                          label: 'DISTANCE',
-                          icon: Icons.location_on_outlined,
-                          valueWidget: Text(
-                            '${provider.distanceKm} km',
-                            style: TextStyle(
-                              fontSize: 22,
-                              fontWeight: FontWeight.w800,
-                              color: CustomColor.textPrimary(context),
-                            ),
-                          ),
-                          footer: 'Speed: ${provider.speedKmh.toInt()} km/h',
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: StatCard(
-                          label: 'CROWD',
-                          icon: Icons.people_outline,
-                          valueWidget: RichText(
-                            text: TextSpan(
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                                color: CustomColor.textPrimary(context),
-                              ),
-                              children: [
-                                TextSpan(text: '${provider.crowdCurrent}'),
-                                TextSpan(
-                                  text: ' / ${provider.crowdCapacity} seats',
-                                  style: TextStyle(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: CustomColor.textSecondary(context),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          trailingContent:
-                          CrowdProgressBar(ratio: provider.crowdRatio),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: StatCard(
-                          label: 'NEXT STOP',
-                          icon: Icons.navigation_outlined,
-                          valueWidget: Text(
-                            provider.nextStopName,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: CustomColor.textPrimary(context),
-                            ),
-                          ),
-                          footer: provider.nextStopStatus,
-                          footerColor: CustomColor.success,
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 12),
-
-                  // ---- Route milestones ----
-                  Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: CustomColor.card(context),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: CustomColor.border(context)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(.10),
+                      blurRadius: 16,
+                      offset: const Offset(0, -4),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                  ],
+                ),
+                child: ListView(
+                  controller: scrollController,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                  children: [
+                    const SheetGrabHandle(),
+
+                    const SizedBox(height: 6),
+
+                    // ---- Vehicle header ----
+                    VehicleHeaderRow(
+                      busNumber: track.busNumber,
+                      serviceType: track.serviceType,
+                      statusLabel: track.statusLabel,
+                      subtitle: track.vehicleSubtitle,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ---- 2x2 metrics ----
+                    GridView.count(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      crossAxisCount: 2,
+                      childAspectRatio: 1.32,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'ROUTE MILESTONES',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                letterSpacing: 0.4,
-                                color: CustomColor.textMutedLabel(context),
-                              ),
-                            ),
-                            Text(
-                              '${provider.stopsRemaining} Stops Remaining',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w700,
-                                color: CustomColor.primary,
-                              ),
-                            ),
-                          ],
+                        LiveMetricCard(
+                          title: "ARRIVAL IN",
+                          icon: Icons.access_time,
+                          value: track.arrivalValue,
+                          valueColor: CustomColor.accentBlue1,
+                          subtitle: track.arrivalSubtitle,
                         ),
-                        const SizedBox(height: 14),
-                        for (int i = 0; i < provider.milestones.length; i++)
-                          MilestoneTile(
-                            milestone: provider.milestones[i],
-                            isLast: i == provider.milestones.length - 1,
-                          ),
+                        LiveMetricCard(
+                          title: "DISTANCE",
+                          icon: Icons.location_on_outlined,
+                          value: track.distanceValue,
+                          subtitle: track.speedSubtitle,
+                        ),
+                        LiveMetricCard(
+                          title: "CROWD",
+                          icon: Icons.people_outline,
+                          value: "${track.occupiedSeats}",
+                          valueSuffix: " / ${track.totalSeats} seats",
+                          subtitle: "",
+                          progress: track.crowdRatio,
+                        ),
+                        NextStopCard(
+                          stopName: track.nextStopName,
+                          status: track.nextStopStatus,
+                        ),
                       ],
                     ),
-                  ),
-                  const SizedBox(height: 16),
 
-                  // ---- Bottom actions ----
-                  Row(
-                    children: [
-                      Expanded(
-                        child: BottomActionButton(
-                          icon: Icons.notifications_none,
-                          label: 'Alert',
-                          background: CustomColor.secondaryActionBg(context),
-                          foreground: CustomColor.secondaryActionText(context),
-                          onTap: provider.sendAlert,
+                    const SizedBox(height: 16),
+
+                    // ---- Route milestones ----
+                    RouteMilestonesCard(
+                      title: track.milestonesTitle,
+                      trailing: track.stopsRemaining,
+                      milestones: track.milestones,
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    // ---- Actions ----
+                    Row(
+                      children: [
+                        Expanded(
+                          child: LiveActionButton(
+                            icon: Icons.notifications_active_outlined,
+                            label: "Alert",
+                            background: CustomColor.buttonSoft(context),
+                            foreground: CustomColor.accentBlue1,
+                            onTap: track.setAlert,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: BottomActionButton(
-                          icon: Icons.share_outlined,
-                          label: 'Share',
-                          background: CustomColor.secondaryActionBg(context),
-                          foreground: CustomColor.secondaryActionText(context),
-                          onTap: provider.shareLiveLocation,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: LiveActionButton(
+                            icon: Icons.my_location,
+                            label: "Share",
+                            background: CustomColor.buttonSoft(context),
+                            foreground: CustomColor.accentBlue1,
+                            onTap: track.shareTrip,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: BottomActionButton(
-                          icon: Icons.sos,
-                          label: 'SOS',
-                          background: CustomColor.sosBg,
-                          foreground: CustomColor.sosText,
-                          onTap: provider.triggerSos,
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: LiveActionButton(
+                            icon: Icons.power_settings_new,
+                            label: "SOS",
+                            background: CustomColor.danger,
+                            foreground: Colors.white,
+                            onTap: (){
+                              Navigator.pushNamed(context, AppRoute.p_sos);
+                            },
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+                      ],
+                    ),
+                  ],
+                ),
+              );
+            },
           ),
         ],
       ),
+    );
+  }
+}
+
+/// =========================================================
+/// MAP AREA — placeholder map + all floating overlays
+/// =========================================================
+class _MapArea extends StatelessWidget {
+  final LiveTrackProvider track;
+
+  const _MapArea({required this.track});
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        // ---- Map surface (drop GoogleMap here) ----
+        Positioned.fill(
+          child: Container(
+            color: CustomColor.softBlue(context),
+            alignment: Alignment.center,
+            child: Text(
+              "Google Map Widget Here",
+              style: TextStyle(
+                fontSize: 12,
+                color: CustomColor.textSecondary(context),
+              ),
+            ),
+          ),
+        ),
+
+        // ---- Top overlay row ----
+        Positioned(
+          top: 12,
+          left: 12,
+          right: 12,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Both pills are Flexible so neither can overflow the row,
+              // no matter how long the route or status text gets.
+              Flexible(
+                flex: 6,
+                child: RouteOverlayPill(
+                  routeNumber: track.routeNumber,
+                  from: track.routeFrom,
+                  to: track.routeTo,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Flexible(
+                flex: 5,
+                child: GpsStatusPill(text: track.gpsStatus),
+              ),
+            ],
+          ),
+        ),
+
+        // ---- Next stop chip ----
+        Positioned(
+          top: 210,
+          right: 40,
+          child: MapChip(
+            label: track.nextStopChip,
+            background: CustomColor.card(context),
+            textColor: CustomColor.accentBlue1,
+          ),
+        ),
+
+        // ---- Bus plate chip ----
+        Positioned(
+          top: 232,
+          left: 24,
+          child: MapChip(
+            label: track.busPlateChip,
+            background: const Color(0xFF1F2937),
+            textColor: Colors.white,
+            showDot: true,
+          ),
+        ),
+
+        // ---- You are here chip ----
+        Positioned(
+          top: 262,
+          left: 118,
+          child: MapChip(
+            label: track.youAreHereLabel,
+            background: const Color(0xFF0F766E),
+            textColor: Colors.white,
+            icon: Icons.location_on,
+          ),
+        ),
+
+        // ---- Bus marker ----
+        const Positioned(
+          top: 262,
+          left: 40,
+          child: BusPulseMarker(),
+        ),
+
+        // ---- Map controls ----
+        Positioned(
+          right: 14,
+          top: 380,
+          child: Column(
+            children: [
+              MapSquareButton(
+                icon: Icons.my_location,
+                onTap: track.recenterMap,
+              ),
+              const SizedBox(height: 12),
+              MapSquareButton(
+                icon: Icons.layers_outlined,
+                onTap: track.toggleMapLayer,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

@@ -87,12 +87,12 @@ class PassengerProfileScreen extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'NVTS TRANSIT',
+                'Sajilo Bus',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 20,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.4,
-                  color: CustomColor.textSecondary(context),
+                  color: CustomColor.textPrimary(context),
                 ),
               ),
               Text(
@@ -100,7 +100,7 @@ class PassengerProfileScreen extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 17,
                   fontWeight: FontWeight.w700,
-                  color: CustomColor.textPrimary(context),
+                  color: CustomColor.textSecondary(context),
                 ),
               ),
             ],
