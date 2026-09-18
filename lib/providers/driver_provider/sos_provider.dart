@@ -1,4 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sajilo_bus/config/dio_client.dart';
 
 enum EmergencyType { vehicleFail, collision, medical, security }
 
@@ -214,14 +217,32 @@ class EmergencyProvider extends ChangeNotifier {
     _isBroadcasting = true;
     notifyListeners();
 
-    // Simulate hold-to-confirm dispatch call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
 
-    _isBroadcasting = false;
-    _sosSent = true;
-    notifyListeners();
+      final typeLabel = _model.selectedType.name.toUpperCase();
+      final logText = _model.quickLogText;
+      final fullMsg = "DRIVER SOS [$typeLabel]: $logText";
 
-    // integrate with actual dispatch/telemetry broadcast API here
+      if (token != null && token.isNotEmpty) {
+        await DioClient.dio.post(
+          "/sos",
+          data: {
+            "latitude": 26.4837,
+            "longitude": 87.2834,
+            "message": fullMsg,
+          },
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+      }
+    } catch (e) {
+      debugPrint("Driver SOS broadcast error: $e");
+    } finally {
+      _isBroadcasting = false;
+      _sosSent = true;
+      notifyListeners();
+    }
   }
 
   void callChannel(String number) {

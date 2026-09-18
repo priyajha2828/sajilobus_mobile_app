@@ -4,6 +4,7 @@ import 'package:sajilo_bus/resources/color/custom_color.dart';
 import 'package:sajilo_bus/routes/app_route.dart';
 
 import '../../../providers/driver_provider/dashboard_provider.dart';
+import '../../../providers/driver_provider/profile_provider.dart';
 import '../../../providers/theme/theme_provider.dart';
 import '../../../resources/card/custom_card.dart';
 
@@ -23,131 +24,143 @@ class _DashboardScreenState extends State<DashboardScreen> {
     // Kept for future wiring to real backend data.
     // final provider = context.watch<DriverDashboardProvider>();
 
-    return Scaffold(
-      backgroundColor: CustomColor.bg_color(context),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // ---------------- TOP APP BAR ----------------
-              Row(
+    return Consumer2<DriverDashboardProvider, DriverProfileProvider>(
+      builder: (context, dashProvider, profileProvider, _) {
+        final profile = profileProvider.profile;
+        final driverName = profile.name;
+        final driverCode = profile.driverBadgeId;
+        final rating = profile.rating;
+        final totalTrips = profile.totalTrips;
+        final licenseNo = profile.commercialLicense;
+        final busName = profile.assignedBusLabel;
+        final plateNumber = profile.plateEnglish;
+        final photoUrl = profile.photoUrl;
+        final isOnline = dashProvider.driverOnline;
+
+        return Scaffold(
+          backgroundColor: CustomColor.bg_color(context),
+          body: SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: CustomColor.primary,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: const Icon(Icons.directions_bus,
-                        color: Colors.white),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
+                  // ---------------- TOP APP BAR ----------------
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: CustomColor.primary,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: const Icon(Icons.directions_bus,
+                            color: Colors.white),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "SajiloBus",
-                              style: TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                                color: CustomColor.textPrimary(context),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(.12),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Icon(Icons.circle,
-                                      size: 8, color: Colors.green),
-                                  SizedBox(width: 4),
-                                  Text(
-                                    "ONLINE",
-                                    style: TextStyle(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green,
-                                    ),
+                            Row(
+                              children: [
+                                Text(
+                                  "SajiloBus",
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                    color: CustomColor.textPrimary(context),
                                   ),
-                                ],
+                                ),
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: (isOnline ? Colors.green : Colors.grey).withOpacity(.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.circle,
+                                          size: 8, color: isOnline ? Colors.green : Colors.grey),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        isOnline ? "ONLINE" : "OFFLINE",
+                                        style: TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                          color: isOnline ? Colors.green : Colors.grey,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Text(
+                              driverName,
+                              style: TextStyle(
+                                color: CustomColor.textSecondary(context),
+                                fontWeight: FontWeight.w600,
                               ),
                             ),
                           ],
                         ),
-                        Text(
-                          "Dashboard",
-                          style: TextStyle(
-                            color: CustomColor.textSecondary(context),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Consumer<ThemeProvider>(
-                    builder: (context, themeProvider, child) {
-                      return IconButton(
-                        onPressed: () {
-                          themeProvider.toggleTheme();
+                      ),
+                      Consumer<ThemeProvider>(
+                        builder: (context, themeProvider, child) {
+                          return IconButton(
+                            onPressed: () {
+                              themeProvider.toggleTheme();
+                            },
+                            icon: Icon(
+                              themeProvider.isDark
+                                  ? Icons.light_mode_rounded
+                                  : Icons.dark_mode_rounded,
+                              color: CustomColor.textPrimary(context),
+                            ),
+                          );
                         },
-                        icon: Icon(
-                          themeProvider.isDark
-                              ? Icons.light_mode_rounded
-                              : Icons.dark_mode_rounded,
-                          color: CustomColor.textPrimary(context),
-                        ),
-                      );
-                    },
+                      ),
+                      CircleAvatar(
+                        radius: 20,
+                        backgroundImage: NetworkImage(photoUrl),
+                      ),
+                    ],
                   ),
-                  const CircleAvatar(
-                    radius: 20,
-                    backgroundImage: NetworkImage(
-                      "https://randomuser.me/api/portraits/men/32.jpg",
-                    ),
+
+                  const SizedBox(height: 16),
+
+                  // ---------------- NOTICE BANNER ----------------
+                  const NoticeBanner(
+                    title: "Koshi Corridor Alert:",
+                    message:
+                    "Notice: Koshi Highway road expansion near Duhabi — expect ~10 min slow crawl.",
                   ),
-                ],
-              ),
 
-              const SizedBox(height: 16),
+                  const SizedBox(height: 16),
 
-              // ---------------- NOTICE BANNER ----------------
-              const NoticeBanner(
-                title: "Koshi Corridor Alert:",
-                message:
-                "Notice: Koshi Highway road expansion near Duhabi — expect ~10 min slow crawl.",
-              ),
-
-              const SizedBox(height: 16),
-
-              // ---------------- DRIVER PROFILE CARD ----------------
-              const DriverProfileCard(
-                driverName: "Ram Kumar Yadav",
-                driverCode: "DRV-001",
-                photoUrl: "https://randomuser.me/api/portraits/men/45.jpg",
-                rating: 4.8,
-                totalTrips: 1200,
-                licenseNo: "KOSHI-2025-45879",
-                busName: "BUS-101 (Deluxe Coach)",
-                plateNumber: "BA 2 KHA 4567",
-                seatInfo: "40-Seater • Air Suspended",
-                inService: true,
-                corridorLabel: "Assigned Corridor",
-                corridorRoute:
-                "Biratnagar Bus Park → Itahari (Koshi Highway)",
-                shiftTime: "07:00 AM – 03:00 PM",
-                shiftLabel: "Shift 1",
-                remainingTime: "5h 22m",
-              ),
+                  // ---------------- DRIVER PROFILE CARD ----------------
+                  DriverProfileCard(
+                    driverName: driverName,
+                    driverCode: driverCode,
+                    photoUrl: photoUrl,
+                    rating: rating,
+                    totalTrips: totalTrips,
+                    licenseNo: licenseNo,
+                    busName: busName,
+                    plateNumber: plateNumber,
+                    seatInfo: "40-Seater • Air Suspended",
+                    inService: isOnline,
+                    corridorLabel: "Assigned Corridor",
+                    corridorRoute:
+                    "${profile.routeFrom} → ${profile.routeTo}",
+                    shiftTime: "07:00 AM – 03:00 PM",
+                    shiftLabel: "Shift 1",
+                    remainingTime: "5h 22m",
+                  ),
 
               const SizedBox(height: 16),
 
@@ -361,7 +374,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
         ),
       ),
 
-
-    );
-  }
+      );
+    },
+  );
+ }
 }

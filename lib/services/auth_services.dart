@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:sajilo_bus/config/dio_client.dart';
 
 class AuthService {
@@ -11,10 +10,8 @@ class AuthService {
     required String email,
     required String password,
   }) async {
-
     // Firebase Login
-    UserCredential credential =
-    await _auth.signInWithEmailAndPassword(
+    UserCredential credential = await _auth.signInWithEmailAndPassword(
       email: email,
       password: password,
     );
@@ -27,6 +24,7 @@ class AuthService {
       "/auth/login",
       data: {
         "idToken": idToken,
+        "email": email,
       },
     );
   }
@@ -37,25 +35,39 @@ class AuthService {
     required String phone,
     required String password,
   }) async {
-
-    //user create garne
-    UserCredential credential =
-    await _auth.createUserWithEmailAndPassword(
+    // User create in Firebase
+    UserCredential credential = await _auth.createUserWithEmailAndPassword(
       email: email,
       password: password,
     );
-    // get firebase token
+
+    // Get Firebase Token
     String? idToken = await credential.user!.getIdToken();
 
-    //aaba backend ma send grne
+    // Send to Backend
     return await _dio.post(
-      // "http://192.168.18.162:5000/auth/register",
-      "/auth/register",
+      "/auth/signup",
       data: {
         "idToken": idToken,
         "name": name,
+        "email": email,
         "phone": phone,
       },
     );
+  }
+
+  Future<Response> getMe(String token) async {
+    return await _dio.get(
+      "/auth/me",
+      options: Options(
+        headers: {
+          "Authorization": "Bearer $token",
+        },
+      ),
+    );
+  }
+
+  Future<void> logout() async {
+    await _auth.signOut();
   }
 }

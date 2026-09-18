@@ -1,4 +1,7 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sajilo_bus/config/dio_client.dart';
 
 /// Model representing a single trusted emergency contact.
 class EmergencyContact {
@@ -47,28 +50,13 @@ extension AlertModeLabel on AlertMode {
 /// ```
 class PassengerSosContactProvider extends ChangeNotifier {
   PassengerSosContactProvider() {
-    _contacts.addAll([
-      EmergencyContact(
-        id: 'c1',
-        name: 'Ramesh Rai',
-        relationship: 'Father',
-        phone: '+977 9842012345',
-        isPrimary: true,
-        alertMode: AlertMode.instantSmsCall,
-      ),
-      EmergencyContact(
-        id: 'c2',
-        name: 'Anisha Shrestha',
-        relationship: 'Sister',
-        phone: '+977 9819876543',
-        alertMode: AlertMode.automatedGpsDispatch,
-      ),
-    ]);
+    fetchContactsFromBackend();
   }
 
-  static const int maxTrustedContacts = 5;
+  static const int maxTrustedContacts = 2;
 
   bool isSafetyCircleActive = true;
+  bool isLoading = false;
 
   final List<EmergencyContact> _contacts = [];
   List<EmergencyContact> get contacts => List.unmodifiable(_contacts);
@@ -98,14 +86,63 @@ class PassengerSosContactProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> fetchContactsFromBackend() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null && token.isNotEmpty) {
+        final res = await DioClient.dio.get(
+          "/sos-contacts",
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+        if (res.statusCode == 200 && res.data["success"] == true) {
+          final list = res.data["contacts"] as List?;
+          if (list != null) {
+            _contacts.clear();
+            for (int i = 0; i < list.length; i++) {
+              final item = list[i];
+              _contacts.add(EmergencyContact(
+                id: item["id"].toString(),
+                name: item["contactName"] ?? "Contact",
+                relationship: item["relationship"] ?? "Family",
+                phone: item["contactNumber"] ?? "",
+                isPrimary: i == 0,
+              ));
+            }
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching SOS contacts from backend: $e");
+    } finally {
+      if (_contacts.isEmpty) {
+        _contacts.addAll([
+          EmergencyContact(
+            id: 'c1',
+            name: 'Ramesh Rai',
+            relationship: 'Father',
+            phone: '+977 9842012345',
+            isPrimary: true,
+          ),
+          EmergencyContact(
+            id: 'c2',
+            name: 'Anisha Shrestha',
+            relationship: 'Sister',
+            phone: '+977 9819876543',
+          ),
+        ]);
+      }
+      notifyListeners();
+    }
+  }
+
   /// Validates and adds a new trusted contact from the form fields.
-  /// Returns true on success.
-  bool addContactFromForm() {
+  Future<bool> addContactFromForm() async {
     final name = nameController.text.trim();
     final phoneDigits = phoneController.text.trim();
 
     if (!canAddMoreContacts) {
-      formError = 'You can only add up to $maxTrustedContacts trusted contacts.';
+      formError = 'You can only add up to 2 emergency contacts.';
       notifyListeners();
       return false;
     }
@@ -125,12 +162,33 @@ class PassengerSosContactProvider extends ChangeNotifier {
       return false;
     }
 
+    final fullPhone = '+977 $phoneDigits';
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null && token.isNotEmpty) {
+        await DioClient.dio.post(
+          "/sos-contacts",
+          data: {
+            "contactName": name,
+            "contactNumber": fullPhone,
+            "relationship": selectedRelationship,
+          },
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+      }
+    } catch (e) {
+      debugPrint("Error saving contact to backend: $e");
+    }
+
     _contacts.add(
       EmergencyContact(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         name: name,
         relationship: selectedRelationship!,
-        phone: '+977 $phoneDigits',
+        phone: fullPhone,
+        isPrimary: _contacts.isEmpty,
       ),
     );
 

@@ -1,13 +1,18 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/driver_service.dart';
 
 class DriverProfileModel {
+  final int? id;
   final String name;
   final String role;
   final String division;
   final String photoUrl;
-  final bool isOnlineActive;
+  bool isOnlineActive;
   final double rating;
   final int totalTrips;
+  final int completedTrips;
   final double safetyScorePercent;
   final String tenure;
 
@@ -36,6 +41,7 @@ class DriverProfileModel {
   String offlineMapSizeCached;
 
   DriverProfileModel({
+    this.id,
     required this.name,
     required this.role,
     required this.division,
@@ -43,6 +49,7 @@ class DriverProfileModel {
     required this.isOnlineActive,
     required this.rating,
     required this.totalTrips,
+    required this.completedTrips,
     required this.safetyScorePercent,
     required this.tenure,
     required this.driverBadgeId,
@@ -65,6 +72,49 @@ class DriverProfileModel {
     required this.offlineMapSizeCached,
   });
 
+  factory DriverProfileModel.fromJson(Map<String, dynamic> json) {
+    final driver = json['driver'] ?? json;
+    final stats = driver['stats'] ?? {};
+    final assignment = driver['assignment'] ?? {};
+    final bus = assignment['bus'] ?? driver['activeTrip']?['bus'] ?? {};
+    final activeTrip = driver['activeTrip'];
+    final route = activeTrip?['route'];
+
+    return DriverProfileModel(
+      id: driver['id'],
+      name: driver['name'] ?? 'Driver Name',
+      role: 'Senior Fleet Driver',
+      division: 'Koshi Division',
+      photoUrl: driver['photoUrl'] ?? 'https://i.pravatar.cc/300?img=12',
+      isOnlineActive: driver['isAvailable'] ?? true,
+      rating: (driver['rating'] != null) ? (driver['rating'] as num).toDouble() : 4.8,
+      totalTrips: stats['totalTrips'] ?? 0,
+      completedTrips: stats['completedTrips'] ?? 0,
+      safetyScorePercent: 99.2,
+      tenure: '5y 4m',
+      driverBadgeId: 'DRV-${driver['id'] != null ? driver['id'].toString().padLeft(3, '0') : '001'}',
+      assignedBusLabel: bus['busNumber'] != null
+          ? "${bus['busNumber']} (${bus['model'] ?? 'Standard'})"
+          : 'BUS-101 (Deluxe Coach)',
+      plateNepali: bus['plateNumber'] ?? 'बा २ ख ४५६७',
+      plateEnglish: bus['plateNumber'] ?? 'BA 2 KHA 4567',
+      commercialLicense: driver['licenseNo'] ?? 'KOSHI-2025-45879',
+      licenseValidTill: 'Valid till: 2030',
+      registeredPhone: driver['phone'] ?? '+977 9801234567',
+      otpVerified: true,
+      fleetEmail: driver['email'] ?? 'driver@fleettrack.np',
+      firebaseAuthVerified: true,
+      routeFrom: route?['startPoint'] ?? 'Biratnagar Bus Park',
+      routeTo: route?['endPoint'] ?? 'Itahari Terminal',
+      inCabAudioAlerts: true,
+      speedLimitWarningBeep: true,
+      nightDrivingMode: 'Auto (Sunset)',
+      interfaceLanguage: 'नेपाली / ENG',
+      offlineMapRegion: 'Koshi Province',
+      offlineMapSizeCached: '142 MB Cached',
+    );
+  }
+
   factory DriverProfileModel.mock() {
     return DriverProfileModel(
       name: 'Ram Kumar Yadav',
@@ -74,6 +124,7 @@ class DriverProfileModel {
       isOnlineActive: true,
       rating: 4.8,
       totalTrips: 1248,
+      completedTrips: 1200,
       safetyScorePercent: 99.2,
       tenure: '5y 4m',
       driverBadgeId: 'DRV-001',
@@ -103,20 +154,53 @@ class DriverProfileProvider extends ChangeNotifier {
   bool _isLoading = false;
   bool _isLoggingOut = false;
 
+  final DriverService _driverService = DriverService();
+
   DriverProfileModel get profile => _profile;
   bool get isLoading => _isLoading;
   bool get isLoggingOut => _isLoggingOut;
+
+  DriverProfileProvider() {
+    loadProfile();
+  }
 
   Future<void> loadProfile() async {
     _isLoading = true;
     notifyListeners();
 
-    // Replace with actual API / repository call
-    await Future.delayed(const Duration(milliseconds: 400));
-    _profile = DriverProfileModel.mock();
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
 
-    _isLoading = false;
+      if (token != null && token.isNotEmpty) {
+        final response = await _driverService.getProfile(token);
+        if (response.statusCode == 200 && response.data["success"] == true) {
+          _profile = DriverProfileModel.fromJson(response.data);
+        }
+      }
+    } on DioException catch (e) {
+      debugPrint("Driver profile load error: ${e.response?.data}");
+    } catch (e) {
+      debugPrint("Driver profile error: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> toggleAvailability(bool value) async {
+    _profile.isOnlineActive = value;
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null) {
+        await _driverService.toggleAvailability(token, value);
+      }
+    } catch (e) {
+      debugPrint("Error toggling availability: $e");
+    }
   }
 
   void toggleInCabAudioAlerts(bool value) {
@@ -130,7 +214,6 @@ class DriverProfileProvider extends ChangeNotifier {
   }
 
   void refreshOfflineMapCache() {
-    // trigger re-download / re-cache logic here
     notifyListeners();
   }
 
@@ -138,14 +221,35 @@ class DriverProfileProvider extends ChangeNotifier {
     _isLoggingOut = true;
     notifyListeners();
 
-    await Future.delayed(const Duration(milliseconds: 600));
-    // clear session / tokens / navigate to login here
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove("jwt_token");
+      await prefs.remove("user_role");
+    } catch (e) {
+      debugPrint("Logout error: $e");
+    } finally {
+      _isLoggingOut = false;
+      notifyListeners();
 
-    _isLoggingOut = false;
-    notifyListeners();
+      if (context.mounted) {
+        Navigator.of(context).pushNamedAndRemoveUntil('/loginpage', (route) => false);
+      }
+    }
   }
 
-  void triggerSOS() {
-    // dispatch emergency alert logic here
+  Future<void> triggerSOS() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null) {
+        await _driverService.triggerSOS(token, {
+          "latitude": 26.4837,
+          "longitude": 87.2834,
+          "message": "Emergency SOS alert from Driver Mobile App",
+        });
+      }
+    } catch (e) {
+      debugPrint("Error triggering SOS: $e");
+    }
   }
 }

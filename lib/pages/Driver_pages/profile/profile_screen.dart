@@ -118,19 +118,19 @@ class _ProfileHeader extends StatelessWidget {
                   padding:
                   const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: CustomColor.onlineGreen,
+                    color: profile.isOnlineActive ? CustomColor.onlineGreen : Colors.grey,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                         color: CustomColor.card(context), width: 2),
                   ),
-                  child: const Row(
+                  child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.circle, size: 8, color: Colors.white),
-                      SizedBox(width: 4),
+                      const Icon(Icons.circle, size: 8, color: Colors.white),
+                      const SizedBox(width: 4),
                       Text(
-                        'ONLINE & ACTIVE',
-                        style: TextStyle(
+                        profile.isOnlineActive ? 'ONLINE & ACTIVE' : 'OFFLINE',
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w700,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/passenger_provider/dashboard_provider.dart';
+import '../../../providers/passenger_provider/profile_provider.dart';
 import '../../../resources/bar/custom_bar.dart';
 import '../../../resources/card/custom_card.dart';
 import '../../../resources/chip/custom_chip.dart';
@@ -34,6 +35,7 @@ class _TransitHomeBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final provider = context.watch<TransitHomeProvider>();
+    final profileProvider = context.watch<ProfileProvider>();
     final p = context.read<TransitHomeProvider>();
 
     return Scaffold(
@@ -50,7 +52,7 @@ class _TransitHomeBody extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     GreetingHeader(
-                      userName: provider.userName,
+                      userName: profileProvider.name.isNotEmpty ? profileProvider.name : provider.userName,
                       isGpsSynced: provider.isGpsSynced,
                       dateLabel: provider.dateLabel,
                       locationLabel: provider.locationLabel,
@@ -209,10 +211,14 @@ class _TopBar extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 14),
-          CircleAvatar(
-            radius: 17,
-            backgroundColor: CustomColor.onDarkFaint,
-            child: Icon(Icons.person, color: CustomColor.textPrimary(context)),
+          Consumer<ProfileProvider>(
+            builder: (context, userProfile, _) {
+              return CircleAvatar(
+                radius: 17,
+                backgroundColor: CustomColor.onDarkFaint,
+                backgroundImage: NetworkImage(userProfile.avatarUrl),
+              );
+            },
           ),
         ],
       ),
