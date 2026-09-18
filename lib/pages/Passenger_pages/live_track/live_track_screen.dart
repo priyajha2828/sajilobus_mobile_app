@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import 'package:sajilo_bus/routes/app_route.dart';
 
@@ -178,20 +180,93 @@ class _MapArea extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final busLoc = track.busLocation;
+    final passLoc = track.passengerLocation;
+
     return Stack(
       children: [
-        // ---- Map surface (drop GoogleMap here) ----
+        // ---- Interactive Vector Map (OpenStreetMap) ----
         Positioned.fill(
-          child: Container(
-            color: CustomColor.softBlue(context),
-            alignment: Alignment.center,
-            child: Text(
-              "Google Map Widget Here",
-              style: TextStyle(
-                fontSize: 12,
-                color: CustomColor.textSecondary(context),
-              ),
+          child: FlutterMap(
+            options: MapOptions(
+              initialCenter: busLoc,
+              initialZoom: 13.5,
             ),
+            children: [
+              TileLayer(
+                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                userAgentPackageName: 'np.sajilobus.app',
+              ),
+              MarkerLayer(
+                markers: [
+                  // Passenger Marker
+                  Marker(
+                    point: passLoc,
+                    width: 60,
+                    height: 60,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF0F766E),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Text(
+                            "You",
+                            style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        const Icon(
+                          Icons.person_pin_circle,
+                          color: Color(0xFF0F766E),
+                          size: 26,
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Live Bus Marker
+                  Marker(
+                    point: busLoc,
+                    width: 80,
+                    height: 60,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF1F2937),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            track.busPlateChip,
+                            style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: CustomColor.primary,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(color: Colors.black26, blurRadius: 4),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.directions_bus_filled,
+                            color: Colors.white,
+                            size: 18,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
 
@@ -203,8 +278,6 @@ class _MapArea extends StatelessWidget {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Both pills are Flexible so neither can overflow the row,
-              // no matter how long the route or status text gets.
               Flexible(
                 flex: 6,
                 child: RouteOverlayPill(
@@ -222,52 +295,10 @@ class _MapArea extends StatelessWidget {
           ),
         ),
 
-        // ---- Next stop chip ----
-        Positioned(
-          top: 210,
-          right: 40,
-          child: MapChip(
-            label: track.nextStopChip,
-            background: CustomColor.card(context),
-            textColor: CustomColor.accentBlue1,
-          ),
-        ),
-
-        // ---- Bus plate chip ----
-        Positioned(
-          top: 232,
-          left: 24,
-          child: MapChip(
-            label: track.busPlateChip,
-            background: const Color(0xFF1F2937),
-            textColor: Colors.white,
-            showDot: true,
-          ),
-        ),
-
-        // ---- You are here chip ----
-        Positioned(
-          top: 262,
-          left: 118,
-          child: MapChip(
-            label: track.youAreHereLabel,
-            background: const Color(0xFF0F766E),
-            textColor: Colors.white,
-            icon: Icons.location_on,
-          ),
-        ),
-
-        // ---- Bus marker ----
-        const Positioned(
-          top: 262,
-          left: 40,
-          child: BusPulseMarker(),
-        ),
-
         // ---- Map controls ----
         Positioned(
           right: 14,
-          top: 380,
+          top: 80,
           child: Column(
             children: [
               MapSquareButton(

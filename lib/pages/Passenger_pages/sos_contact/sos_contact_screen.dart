@@ -80,9 +80,9 @@ class PassengerSosContactScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     AddContactFormCard(
                       provider: provider,
-                      onSubmit: () {
-                        final added = provider.addContactFromForm();
-                        if (added) {
+                      onSubmit: () async {
+                        final added = await provider.addContactFromForm();
+                        if (added && context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Trusted contact added.'),

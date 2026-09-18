@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/driver_provider/trip_provider.dart';
@@ -383,23 +385,49 @@ class _MapCard extends StatelessWidget {
                 ],
               ),
             ),
-            // Replace this SizedBox with your real map widget
-            // (google_maps_flutter / mapbox_gl / flutter_map, etc).
             SizedBox(
               height: 230,
               child: Stack(
                 children: [
-                  Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: CustomColor.mapFill(context),
-                    child: Center(
-                      child: Icon(
-                        Icons.map_outlined,
-                        size: 48,
-                        color: CustomColor.textMutedLabel(context).withOpacity(0.4),
-                      ),
+                  FlutterMap(
+                    options: MapOptions(
+                      initialCenter: trip.driverLocation,
+                      initialZoom: 14.0,
                     ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'np.sajilobus.app',
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: trip.driverLocation,
+                            width: 50,
+                            height: 50,
+                            child: Column(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: const BoxDecoration(
+                                    color: CustomColor.primary,
+                                    shape: BoxShape.circle,
+                                    boxShadow: [
+                                      BoxShadow(color: Colors.black26, blurRadius: 4),
+                                    ],
+                                  ),
+                                  child: const Icon(
+                                    Icons.directions_bus_filled,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   Positioned(
                     top: 12,
@@ -413,10 +441,6 @@ class _MapCard extends StatelessWidget {
                           active: trip.trafficSignalActive,
                           onTap: () {},
                         ),
-                        const SizedBox(height: 8),
-                        MapControlButton(icon: Icons.add, onTap: () {}),
-                        const SizedBox(height: 8),
-                        MapControlButton(icon: Icons.remove, onTap: () {}),
                       ],
                     ),
                   ),

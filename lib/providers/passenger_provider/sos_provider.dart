@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sajilo_bus/config/dio_client.dart';
 /// Stages of the live dispatch lifecycle stepper.
 enum DispatchStage { pending, inProgress, resolved }
 
@@ -165,11 +168,35 @@ class PassengerSosProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void _activateSos() {
+  Future<void> _activateSos() async {
     isHolding = false;
     sosActivated = true;
-    // TODO: call your dispatch API to broadcast the live SOS alert here.
     notifyListeners();
+
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+
+      final selectedTypeLabel = emergencyTypes[selectedEmergencyIndex].label;
+      final customMsg = descriptionController.text.trim();
+      final messageText = customMsg.isNotEmpty
+          ? "[$selectedTypeLabel] $customMsg"
+          : "EMERGENCY: $selectedTypeLabel triggered";
+
+      if (token != null && token.isNotEmpty) {
+        await DioClient.dio.post(
+          "/sos",
+          data: {
+            "latitude": 26.4525,
+            "longitude": 87.2718,
+            "message": messageText,
+          },
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+      }
+    } catch (e) {
+      debugPrint("Passenger SOS activation error: $e");
+    }
   }
 
   void resetSos() {

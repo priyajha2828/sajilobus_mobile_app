@@ -1,7 +1,11 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sajilo_bus/config/dio_client.dart';
+import '../../services/location_service.dart';
 
 /// =========================================================
 /// MODELS
@@ -38,14 +42,55 @@ class LiveTrackProvider extends ChangeNotifier {
   int _occupiedSeats = 32;
   int _totalSeats = 40;
 
+  // Real-time location coordinates
+  LatLng _busLocation = const LatLng(26.4837, 87.2834);
+  LatLng _passengerLocation = const LatLng(26.4525, 87.2718);
+  double _distanceKm = 1.4;
+  int _etaMinutes = 3;
+
+  Timer? _pollingTimer;
+  StreamSubscription<Position>? _positionSubscription;
+  final LocationService _locationService = LocationService();
+
+  LatLng get busLocation => _busLocation;
+  LatLng get passengerLocation => _passengerLocation;
+  double get distanceKm => _distanceKm;
+
   LiveTrackProvider() {
+    initLiveTracking();
+  }
+
+  Future<void> initLiveTracking() async {
     fetchActiveTrip();
+    _startPassengerLocationSubscription();
+
+    // Poll active trip bus location every 5 seconds
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 5), (_) {
+      fetchActiveTrip();
+    });
+  }
+
+  void _startPassengerLocationSubscription() async {
+    final stream = _locationService.getPositionStream();
+    if (stream != null) {
+      _positionSubscription = stream.listen((position) {
+        _passengerLocation = LatLng(position.latitude, position.longitude);
+        _updateDistanceAndEta();
+        notifyListeners();
+      });
+    } else {
+      // Fallback one-time fetch
+      final pos = await _locationService.getCurrentLocation();
+      if (pos != null) {
+        _passengerLocation = LatLng(pos.latitude, pos.longitude);
+        _updateDistanceAndEta();
+        notifyListeners();
+      }
+    }
   }
 
   Future<void> fetchActiveTrip() async {
-    _isLoading = true;
-    notifyListeners();
-
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("jwt_token");
@@ -62,15 +107,40 @@ class LiveTrackProvider extends ChangeNotifier {
             _routeFrom = trip["route"]?["startPoint"] ?? _routeFrom;
             _routeTo = trip["route"]?["endPoint"] ?? _routeTo;
             _totalSeats = trip["bus"]?["capacity"] ?? 40;
+
+            final latestPing = (trip["tripHistory"] as List?)?.firstOrNull;
+            if (latestPing != null) {
+              final double? lat = double.tryParse(latestPing["latitude"].toString());
+              final double? lng = double.tryParse(latestPing["longitude"].toString());
+              if (lat != null && lng != null) {
+                _busLocation = LatLng(lat, lng);
+                _updateDistanceAndEta();
+              }
+            }
           }
         }
       }
     } catch (e) {
       debugPrint("Live track fetch error: $e");
     } finally {
-      _isLoading = false;
       notifyListeners();
     }
+  }
+
+  void _updateDistanceAndEta() {
+    final Distance distance = const Distance();
+    final double meter = distance(_passengerLocation, _busLocation);
+    _distanceKm = (meter / 1000.0);
+    // Assume avg speed of 30 km/h (0.5 km/min)
+    _etaMinutes = (_distanceKm * 2).round();
+    if (_etaMinutes < 1) _etaMinutes = 1;
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    _positionSubscription?.cancel();
+    super.dispose();
   }
 
   // ---------- App bar ----------
@@ -81,7 +151,7 @@ class LiveTrackProvider extends ChangeNotifier {
   String get routeNumber => "Route Live";
   String get routeFrom => _routeFrom;
   String get routeTo => _routeTo;
-  String get gpsStatus => "GPS 100% • 5s ago";
+  String get gpsStatus => "GPS 100% • Live";
 
   String get busPlateChip => _busNumber;
   String get youAreHereLabel => "You are here";
@@ -97,10 +167,10 @@ class LiveTrackProvider extends ChangeNotifier {
   String get vehicleSubtitle => "Plate: $plateNumber • Driver: $driverName";
 
   // ---------- Metric cards ----------
-  String get arrivalValue => "3 mins";
+  String get arrivalValue => "$_etaMinutes mins";
   String get arrivalSubtitle => "Live ETA to pickup";
 
-  String get distanceValue => "1.4 km";
+  String get distanceValue => "${_distanceKm.toStringAsFixed(1)} km";
   String get speedSubtitle => "Speed: $_speedText";
 
   int get occupiedSeats => _occupiedSeats;

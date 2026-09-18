@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sajilo_bus/config/dio_client.dart';
 import '../../services/driver_service.dart';
+import '../../services/location_service.dart';
 
 /// Status of a single stop in the route timeline.
 enum StopStatus { completed, current, upcoming, finalStop }
@@ -40,6 +44,12 @@ class TripProvider extends ChangeNotifier {
   // Header / status
   bool driverOnline = true;
   bool liveGpsOn = true;
+
+  // Real-time location
+  LatLng driverLocation = const LatLng(26.4837, 87.2834);
+  StreamSubscription<Position>? _locationSubscription;
+  final LocationService _locationService = LocationService();
+  DateTime? _lastPingTime;
 
   // Route summary
   String originCity = 'Biratnagar';
@@ -130,6 +140,44 @@ class TripProvider extends ChangeNotifier {
 
   TripProvider() {
     fetchActiveTrip();
+    _startLocationBroadcasting();
+  }
+
+  void _startLocationBroadcasting() {
+    final stream = _locationService.getPositionStream();
+    if (stream != null) {
+      _locationSubscription = stream.listen((position) {
+        driverLocation = LatLng(position.latitude, position.longitude);
+        currentSpeed = (position.speed * 3.6).round(); // m/s to km/h
+        if (currentSpeed < 0) currentSpeed = 0;
+        notifyListeners();
+
+        // Broadcast to backend at most once every 5 seconds if active trip exists
+        final now = DateTime.now();
+        if (activeTripId != null && (_lastPingTime == null || now.difference(_lastPingTime!).inSeconds >= 5)) {
+          _lastPingTime = now;
+          _broadcastLocationToBackend(position.latitude, position.longitude, currentSpeed.toDouble());
+        }
+      });
+    }
+  }
+
+  Future<void> _broadcastLocationToBackend(double lat, double lng, double speed) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null && activeTripId != null) {
+        await _driverService.recordLocation(token, activeTripId!, lat, lng, speed: speed);
+      }
+    } catch (e) {
+      debugPrint("Error broadcasting driver location: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> fetchActiveTrip() async {
