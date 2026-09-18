@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/driver_provider/trip_provider.dart';
+import '../../../providers/driver_provider/profile_provider.dart';
 import '../../../resources/banner/custom_banner.dart';
 import '../../../resources/bottom/driver_button.dart';
 import '../../../resources/card/custom_card.dart';
@@ -113,12 +114,16 @@ class _Header extends StatelessWidget {
             ],
           ),
         ),
-        const CircleAvatar(
-          radius: 20,
-          backgroundColor: Color(0xFFE5E7EB),
-          backgroundImage: NetworkImage(
-            'https://i.pravatar.cc/100?img=12',
-          ),
+        Consumer<DriverProfileProvider>(
+          builder: (context, driverProfile, _) {
+            return CircleAvatar(
+              radius: 20,
+              backgroundColor: const Color(0xFFE5E7EB),
+              backgroundImage: NetworkImage(
+                driverProfile.profile.photoUrl,
+              ),
+            );
+          },
         ),
       ],
     );

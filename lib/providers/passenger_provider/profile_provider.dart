@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/auth_services.dart';
 
-/// Holds all the data + toggle state shown on the Profile screen.
-///
-/// Wrap the app (or just this screen) with:
-///   ChangeNotifierProvider(create: (_) => ProfileProvider()),
 class ProfileProvider extends ChangeNotifier {
   // ---------------- User info ----------------
-  String name = 'Sita Rai';
-  String verifiedIdLabel = 'Verified Citizen ID (Nagarikta)';
-  String email = 'sita.rai@gmail.com';
+  String name = 'Passenger';
+  String verifiedIdLabel = 'Verified Account';
+  String email = 'passenger@sajilobus.np';
   String phone = '+977 9801234567';
   String avatarUrl =
       'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=200&q=80';
@@ -24,15 +23,15 @@ class ProfileProvider extends ChangeNotifier {
 
   // ---------------- Authentication & security log ----------------
   String sessionState = 'Live Session';
-  String lastLogin = 'Today, 08:14 AM';
+  String lastLogin = 'Today, Active';
   String terminalRegionStatus = 'SUCCESS';
   String terminalRegion = 'Biratnagar';
-  String sessionDevice = 'Samsung Galaxy S23 (Android 14)';
-  String firebaseAuthUid = '#usr_nep_99214';
+  String sessionDevice = 'Mobile App (Android/iOS)';
+  String firebaseAuthUid = '#usr_sajilobus_active';
 
   // ---------------- App & travel preferences ----------------
   bool pushNotifications = true;
-  bool isEnglish = true; // false => नेपाली
+  bool isEnglish = true;
   bool highContrastMode = true;
   bool audioAnnouncements = true;
 
@@ -42,9 +41,38 @@ class ProfileProvider extends ChangeNotifier {
   String privacyPolicyLabel = 'Privacy Policy & Terms of Carriage';
 
   // ---------------- App info ----------------
-  String appFooter = 'NVTS Nepal Transit  •  App Version 3.4.1 (Build 412)';
+  String appFooter = 'SajiloBus Transit • App Version 3.4.1';
 
-  // ---------------- Actions ----------------
+  final AuthService _authService = AuthService();
+
+  ProfileProvider() {
+    loadUserProfile();
+  }
+
+  Future<void> loadUserProfile() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+
+      if (token != null && token.isNotEmpty) {
+        final res = await _authService.getMe(token);
+        if (res.statusCode == 200 && res.data["success"] == true) {
+          final user = res.data["user"];
+          if (user != null) {
+            name = user["name"] ?? name;
+            email = user["email"] ?? email;
+            phone = user["phone"] ?? phone;
+            firebaseAuthUid = user["firebaseUid"] ?? firebaseAuthUid;
+          }
+        }
+      }
+    } catch (e) {
+      debugPrint("Error loading passenger profile: $e");
+    } finally {
+      notifyListeners();
+    }
+  }
+
   void togglePushNotifications(bool value) {
     pushNotifications = value;
     notifyListeners();
@@ -66,7 +94,9 @@ class ProfileProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
-    // TODO: hook up real Firebase sign-out here.
-    debugPrint('Logging out from Firebase...');
+    await _authService.logout();
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+    notifyListeners();
   }
 }

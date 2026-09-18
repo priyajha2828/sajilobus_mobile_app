@@ -113,7 +113,8 @@ class LoginPage extends StatelessWidget {
                                     ? const Color(0xFF0091EA)
                                     : Colors.red.shade800,
                                 errorBorderColor: Colors.red,
-                                validator: (value) => null, obscureText: true ,
+                                validator: (value) => null,
+                                obscureText: false,
                               ),
 
                               // --- EMAIL ERROR MESSAGE ---
@@ -178,7 +179,6 @@ class LoginPage extends StatelessWidget {
                                         : Icons.visibility,
                                   ),
                                 ),
-
                                 validator: (value) => null,
                               ),
                               const SizedBox(height: 16),
@@ -228,17 +228,32 @@ class LoginPage extends StatelessWidget {
                                 onPressed: provider.isLoading
                                     ? null
                                     : () async {
-                                  bool loginSuccess = await provider.login();
-                                  if (loginSuccess && context.mounted) {
-                                    Navigator.pushNamed(context, AppRoute.p_dashboard);
-                                  }else{
-                                    ScaffoldMessenger.of(context).showSnackBar(
-
-                                      const SnackBar(content: Text("login failed"),
-                                      )
-                                    );
-                                  }
-                                },
+                                        bool loginSuccess = await provider.login();
+                                        if (loginSuccess && context.mounted) {
+                                          if (provider.userRole == "DRIVER") {
+                                            Navigator.pushNamedAndRemoveUntil(
+                                              context,
+                                              AppRoute.d_navigation,
+                                              (route) => false,
+                                            );
+                                          } else {
+                                            Navigator.pushNamedAndRemoveUntil(
+                                              context,
+                                              AppRoute.user_nav,
+                                              (route) => false,
+                                            );
+                                          }
+                                        } else if (context.mounted) {
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                provider.emailError ?? "Login failed. Check your credentials.",
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      },
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: const Color(0xFF0091EA),
                                   foregroundColor: Colors.white,
@@ -251,21 +266,21 @@ class LoginPage extends StatelessWidget {
                                 ),
                                 child: provider.isLoading
                                     ? const SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 2,
+                                        ),
+                                      )
                                     : const Text(
-                                  'Continue',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                    color: Colors.white,
-                                  ),
-                                ),
+                                        'Continue',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
                               ),
                             ],
                           ),
@@ -284,41 +299,17 @@ class LoginPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             TextButton(
-                                onPressed: () {
-                                  Navigator.pushNamed(context, AppRoute.signuppage);
-                                },
-                                child: Text(
-                                  "Sign up",
-                                  style: TextStyle(
-                                    color: CustomColor.textPrimary(context),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                )
-                            ),
-                            TextButton(
-                              onPressed: (){
-                                 Navigator.pushNamed(context, AppRoute.user_nav);
+                              onPressed: () {
+                                Navigator.pushNamed(context, AppRoute.signuppage);
                               },
                               child: Text(
-                                "p_Login",
+                                "Don't have an account? Sign up",
                                 style: TextStyle(
                                   color: CustomColor.textPrimary(context),
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            TextButton(
-                              onPressed: (){
-                                Navigator.pushNamed(context, AppRoute.d_navigation);
-                              },
-                              child: Text(
-                                "D_Login",
-                                style: TextStyle(
-                                  color: CustomColor.textPrimary(context),
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            )
                           ],
                         ),
                       ),

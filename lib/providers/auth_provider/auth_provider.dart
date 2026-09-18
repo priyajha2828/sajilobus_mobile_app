@@ -1,11 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../services/auth_services.dart';
 
 class AuthProvider extends ChangeNotifier {
-
   bool _isLoading = false;
   bool get isLoading => _isLoading;
 
@@ -14,6 +12,15 @@ class AuthProvider extends ChangeNotifier {
 
   bool _rememberMe = false;
   bool get rememberMe => _rememberMe;
+
+  String? _token;
+  String? get token => _token;
+
+  String? _userRole; // "PASSENGER", "DRIVER", "ADMIN"
+  String? get userRole => _userRole;
+
+  Map<String, dynamic>? _userData;
+  Map<String, dynamic>? get userData => _userData;
 
   final AuthService _authService = AuthService();
 
@@ -26,7 +33,7 @@ class AuthProvider extends ChangeNotifier {
   final TextEditingController _recoveryEmailController = TextEditingController();
 
   final List<TextEditingController> _otpControllers =
-  List.generate(6, (_) => TextEditingController());
+      List.generate(6, (_) => TextEditingController());
 
   TextEditingController get nameController => _nameController;
   TextEditingController get emailController => _emailController;
@@ -49,6 +56,18 @@ class AuthProvider extends ChangeNotifier {
   String? get phoneError => _phoneError;
   String? get passwordError => _passwordError;
   String? get confirmPasswordError => _confirmPasswordError;
+
+  AuthProvider() {
+    loadSavedSession();
+  }
+
+  // Load token & role from SharedPreferences
+  Future<void> loadSavedSession() async {
+    final prefs = await SharedPreferences.getInstance();
+    _token = prefs.getString("jwt_token");
+    _userRole = prefs.getString("user_role");
+    notifyListeners();
+  }
 
   // Toggle Password
   void togglePassword() {
@@ -146,8 +165,8 @@ class AuthProvider extends ChangeNotifier {
     if (_phoneController.text.trim().isEmpty) {
       setPhoneError("Phone number is required");
       valid = false;
-    } else if (_phoneController.text.length != 10) {
-      setPhoneError("Phone number must be 10 digits");
+    } else if (_phoneController.text.length < 10) {
+      setPhoneError("Phone number must be at least 10 digits");
       valid = false;
     } else {
       setPhoneError(null);
@@ -163,8 +182,7 @@ class AuthProvider extends ChangeNotifier {
       setPasswordError(null);
     }
 
-    if (_confirmPasswordController.text !=
-        _passwordController.text) {
+    if (_confirmPasswordController.text != _passwordController.text) {
       setConfirmPasswordError("Passwords do not match");
       valid = false;
     } else {
@@ -176,7 +194,6 @@ class AuthProvider extends ChangeNotifier {
 
   // Login
   Future<bool> login() async {
-
     if (!validateLogin()) {
       return false;
     }
@@ -190,93 +207,122 @@ class AuthProvider extends ChangeNotifier {
         password: passwordController.text,
       );
 
-      print("STATUS CODE: ${response.statusCode}");
-      print("RESPONSE: ${response.data}");
+      debugPrint("LOGIN RESPONSE: ${response.data}");
 
       if (response.data["success"] == true) {
+        _token = response.data["token"];
+        _userRole = response.data["role"] ?? "PASSENGER";
+        _userData = response.data["user"] ?? response.data["driver"] ?? response.data["passenger"];
+
+        // Save session in SharedPreferences
+        final prefs = await SharedPreferences.getInstance();
+        if (_token != null) {
+          await prefs.setString("jwt_token", _token!);
+        }
+        if (_userRole != null) {
+          await prefs.setString("user_role", _userRole!);
+        }
+
         return true;
       }
 
       return false;
     } on DioException catch (e) {
-      print("DIO ERROR");
-      print(e.response?.statusCode);
-      print(e.response?.data);
+      debugPrint("LOGIN DIO ERROR: type=${e.type} status=${e.response?.statusCode} msg=${e.message} data=${e.response?.data}");
+      String msg = e.response?.data?["message"] ?? e.message ?? "Login connection error";
+      setEmailError(msg);
       return false;
     } catch (e) {
-      print(e);
+      debugPrint("LOGIN ERROR: $e");
+      setEmailError(e.toString());
       return false;
     } finally {
-
       _isLoading = false;
       notifyListeners();
-
     }
   }
 
   // Register
   Future<bool> register() async {
-    if(!validateRegister()){
+    if (!validateRegister()) {
       return false;
     }
 
     _isLoading = true;
     notifyListeners();
 
-    try{
-      final response =
-      await _authService.register(
-        name: nameController.text,
-        email: emailController.text,
-        phone: phoneController.text,
+    try {
+      final response = await _authService.register(
+        name: nameController.text.trim(),
+        email: emailController.text.trim(),
+        phone: phoneController.text.trim(),
         password: passwordController.text,
-
       );
-      debugPrint(response.data.toString());
-      if(response.statusCode == 200){
+
+      debugPrint("REGISTER RESPONSE: ${response.data}");
+
+      if (response.data["success"] == true) {
+        _token = response.data["token"];
+        _userRole = response.data["role"] ?? "PASSENGER";
+        _userData = response.data["user"] ?? response.data["passenger"];
+
+        final prefs = await SharedPreferences.getInstance();
+        if (_token != null) {
+          await prefs.setString("jwt_token", _token!);
+        }
+        if (_userRole != null) {
+          await prefs.setString("user_role", _userRole!);
+        }
+
         return true;
-      }else{
+      } else {
         return false;
       }
-    }
-
-    catch(e){
-
-      debugPrint(e.toString());
+    } on DioException catch (e) {
+      debugPrint("REGISTER DIO ERROR: type=${e.type} status=${e.response?.statusCode} msg=${e.message} data=${e.response?.data}");
+      String msg = e.response?.data?["message"] ?? e.message ?? "Registration connection error";
+      setEmailError(msg);
       return false;
-
-    }
-
-    finally{
-
+    } catch (e) {
+      debugPrint("REGISTER ERROR: $e");
+      setEmailError(e.toString());
+      return false;
+    } finally {
       _isLoading = false;
       notifyListeners();
-
     }
+  }
 
+  // Logout
+  Future<void> logout() async {
+    await _authService.logout();
+    _token = null;
+    _userRole = null;
+    _userData = null;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove("jwt_token");
+    await prefs.remove("user_role");
+
+    clear();
+    notifyListeners();
   }
 
   Future<void> sendRecoveryLink() async {
     _isLoading = true;
     notifyListeners();
-
     await Future.delayed(const Duration(seconds: 2));
-
     _isLoading = false;
     notifyListeners();
   }
 
   Future<void> verifyOtp(BuildContext context) async {
-    String code =
-    _otpControllers.map((e) => e.text).join();
-
+    String code = _otpControllers.map((e) => e.text).join();
     if (code.length != 6) return;
 
     _isLoading = true;
     notifyListeners();
-
     await Future.delayed(const Duration(seconds: 2));
-
     _isLoading = false;
     notifyListeners();
   }
