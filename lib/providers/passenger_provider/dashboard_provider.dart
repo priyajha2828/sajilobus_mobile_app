@@ -104,7 +104,7 @@ class LiveBus {
 
 class TransitHomeProvider extends ChangeNotifier {
   // ---------------- Top bar / greeting ----------------
-  final String appName = 'NVTS TRANSIT';
+  final String appName = 'Sajilo Bus';
   final String pageLabel = 'Home';
   final int notificationCount = 1;
   final String userName = 'Sita Rai';
@@ -154,7 +154,7 @@ class TransitHomeProvider extends ChangeNotifier {
 
   // ---------------- Quick Transit Hub ----------------
   final List<QuickAction> quickActions = [
-    QuickAction(icon: Icons.map_outlined, label: 'Track Bus',),
+    QuickAction(icon: Icons.map_outlined, label: 'Track Bus',onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.live_track)),
     QuickAction(icon: Icons.alt_route, label: 'Search Route',onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.trackbus)),
     QuickAction(icon: Icons.notifications_none_rounded, label: 'Alerts', badgeCount: 2,onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.alert)),
     QuickAction(icon: Icons.sos_rounded, label: 'SOS Panic', isHighlighted: true,onTap: () => navigatorKey.currentState?.pushNamed(AppRoute.p_sos)),

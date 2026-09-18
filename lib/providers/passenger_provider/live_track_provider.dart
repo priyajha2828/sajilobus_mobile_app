@@ -1,124 +1,109 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 
-/// Status of a single stop along the route timeline.
-enum MilestoneStatus { passed, current, scheduled, destination }
+/// =========================================================
+/// MODELS
+/// =========================================================
+
+enum MilestoneState { passed, current, scheduled, destination }
 
 class RouteMilestone {
   final String title;
   final String subtitle;
-  final String? etaMinutesLabel; // e.g. "11m", "32m" — null for passed/current
-  final MilestoneStatus status;
+  final String trailing;
+  final MilestoneState state;
 
   const RouteMilestone({
     required this.title,
     required this.subtitle,
-    required this.status,
-    this.etaMinutesLabel,
+    required this.trailing,
+    required this.state,
   });
 }
 
-/// Holds all state shown on the Live Vehicle Tracker (passenger_sos) screen.
-///
-/// Wrap this above the screen with:
-/// ```dart
-/// ChangeNotifierProvider(create: (_) => VehicleTrackerProvider()..startListening())
-/// ```
-class VehicleTrackerProvider extends ChangeNotifier {
-  // ---- Route header ----
-  String routeNumber = '104';
-  String routeFrom = 'Biratnagar';
-  String routeTo = 'Itahari';
+/// =========================================================
+/// PROVIDER
+/// =========================================================
+class LiveTrackProvider extends ChangeNotifier {
+  // ---------- App bar ----------
+  String get screenTitle => "Sajilo Bus";
+  String get avatarUrl => "https://i.pravatar.cc/100?img=47";
 
-  // ---- GPS status ----
-  double gpsSignalPercent = 100;
-  int gpsLastUpdatedSeconds = 5;
+  // ---------- Map overlays ----------
+  String get routeNumber => "Route 104";
+  String get routeFrom => "Biratnagar";
+  String get routeTo => "Itahari";
+  String get gpsStatus => "GPS 100% • 5s ago";
 
-  // ---- Vehicle info ----
-  String vehiclePlate = 'BA 2 KHA 8492';
-  String fullPlateNumber = 'Ko 2 Pa 9841';
-  String driverName = 'Ram B....';
-  String serviceTag = 'Fast Express';
-  bool isActive = true;
+  String get busPlateChip => "BA 2 KHA 8492";
+  String get youAreHereLabel => "You are here";
+  String get nextStopChip => "Tankisinuwari (2m)";
 
-  // ---- Live stats ----
-  int arrivalEtaMinutes = 3;
-  double distanceKm = 1.4;
-  double speedKmh = 38;
+  // ---------- Vehicle header ----------
+  String get busNumber => "BA 2 KHA 8492";
+  String get serviceType => "Fast Express";
+  String get statusLabel => "ACTIVE";
+  String get plateNumber => "Ko 2 Pa 9841";
+  String get driverName => "Ram Bahadur Shrestha";
 
-  int crowdCurrent = 32;
-  int crowdCapacity = 40;
+  String get vehicleSubtitle => "Plate: $plateNumber • Driver: $driverName";
 
-  String nextStopName = 'Tankisinuwari';
-  String nextStopStatus = 'Approaching';
+  // ---------- Metric cards ----------
+  String get arrivalValue => "3 mins";
+  String get arrivalSubtitle => "Live ETA to pickup";
 
-  // ---- Route timeline ----
-  int stopsRemaining = 4;
-  List<RouteMilestone> milestones = const [
+  String get distanceValue => "1.4 km";
+  String get speedSubtitle => "Speed: 38 km/h";
+
+  int get occupiedSeats => 32;
+  int get totalSeats => 40;
+  double get crowdRatio => occupiedSeats / totalSeats;
+
+  String get nextStopName => "Tankisinuwari";
+  String get nextStopStatus => "Approaching";
+
+  // ---------- Route milestones ----------
+  String get milestonesTitle => "ROUTE MILESTONES";
+  String get stopsRemaining => "4 Stops Remaining";
+
+  final List<RouteMilestone> milestones = const [
     RouteMilestone(
-      title: 'Bargachhi Hub',
-      subtitle: 'Passed • 09:37 AM',
-      status: MilestoneStatus.passed,
+      title: "Bargachhi Hub",
+      subtitle: "Passed • 09:37 AM",
+      trailing: "",
+      state: MilestoneState.passed,
     ),
     RouteMilestone(
-      title: 'Tankisinuwari',
-      subtitle: 'In ~2 mins • Pickup stop',
-      status: MilestoneStatus.current,
+      title: "Tankisinuwari",
+      subtitle: "In ~2 mins • Pickup stop",
+      trailing: "NOW",
+      state: MilestoneState.current,
     ),
     RouteMilestone(
-      title: 'Duhabi Chowk',
-      subtitle: 'Scheduled • 09:54 AM',
-      status: MilestoneStatus.scheduled,
-      etaMinutesLabel: '11m',
+      title: "Duhabi Chowk",
+      subtitle: "Scheduled • 09:54 AM",
+      trailing: "11m",
+      state: MilestoneState.scheduled,
     ),
     RouteMilestone(
-      title: 'Itahari Central Bus Terminal',
-      subtitle: 'Destination • 10:15 AM',
-      status: MilestoneStatus.destination,
-      etaMinutesLabel: '32m',
+      title: "Itahari Central Bus Terminal",
+      subtitle: "Destination • 10:15 AM",
+      trailing: "32m",
+      state: MilestoneState.destination,
     ),
   ];
 
-  Timer? _pollTimer;
+  // ---------- Actions ----------
+  void goBack(BuildContext context) => Navigator.maybePop(context);
 
-  double get crowdRatio =>
-      crowdCapacity == 0 ? 0 : (crowdCurrent / crowdCapacity).clamp(0, 1);
+  void openProfile() {}
 
-  /// Starts simulated live polling (swap the body for a real socket/API call).
-  void startListening() {
-    _pollTimer?.cancel();
-    _pollTimer = Timer.periodic(const Duration(seconds: 5), (_) => _tick());
-  }
+  void recenterMap() {}
 
-  void _tick() {
-    gpsLastUpdatedSeconds = 0;
-    notifyListeners();
-  }
+  void toggleMapLayer() {}
 
-  /// Called from the "locate me" map control.
-  void recenterMap() {
-    // Hook up to your map controller here.
-    notifyListeners();
-  }
+  void setAlert() {}
 
-  /// Called from the Alert bottom button.
-  Future<void> sendAlert() async {
-    // TODO: wire to your alert/notification API.
-  }
+  void shareTrip() {}
 
-  /// Called from the Share bottom button.
-  Future<void> shareLiveLocation() async {
-    // TODO: wire to share_plus or your deep-link share flow.
-  }
-
-  /// Called from the SOS bottom button.
-  Future<void> triggerSos() async {
-    // TODO: wire to your emergency/SOS API.
-  }
-
-  @override
-  void dispose() {
-    _pollTimer?.cancel();
-    super.dispose();
-  }
+  void triggerSos() {}
 }

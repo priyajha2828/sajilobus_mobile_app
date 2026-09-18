@@ -1,19 +1,108 @@
 import 'package:flutter/material.dart';
-import '../../providers/passenger_provider/live_track_provider.dart';
+
 import '../color/custom_color.dart';
+import '../../providers/passenger_provider/live_track_provider.dart';
 
+/// =========================================================
+/// LIVE VEHICLE TRACKER — WIDGETS
+///
+/// OVERFLOW RULE used everywhere in this file:
+/// any Row that holds text uses Flexible/Expanded + ellipsis,
+/// so a long plate number or driver name can never push the
+/// Row past its parent's width.
+/// =========================================================
 
-/// ============================================================================
-/// passenger_sos — shared resources (cards / tiles / badges / map pieces)
-/// ============================================================================
+/// ---------------------------------------------------------
+/// APP BAR
+/// ---------------------------------------------------------
+class LiveTrackAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String title;
+  final String avatarUrl;
+  final VoidCallback? onBack;
+  final VoidCallback? onAvatarTap;
 
-/// Small pill: "Route 104  Biratnagar → Itahari"
-class RoutePill extends StatelessWidget {
+  const LiveTrackAppBar({
+    super.key,
+    required this.title,
+    required this.avatarUrl,
+    this.onBack,
+    this.onAvatarTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AppBar(
+      backgroundColor: CustomColor.card(context),
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      toolbarHeight: 62,
+      title: Row(
+        children: [
+          IconButton(
+            onPressed: onBack,
+            icon: Icon(
+              Icons.arrow_back,
+              color: CustomColor.textPrimary(context),
+            ),
+          ),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: CustomColor.actionBlue,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(
+              Icons.directions_bus_filled,
+              color: Colors.white,
+              size: 19,
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Flexible => long titles shrink instead of overflowing.
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: CustomColor.textPrimary(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        GestureDetector(
+          onTap: onAvatarTap,
+          child: CircleAvatar(
+            radius: 19,
+            backgroundColor: CustomColor.border(context),
+            backgroundImage: NetworkImage(avatarUrl),
+          ),
+        ),
+        const SizedBox(width: 16),
+      ],
+    );
+  }
+
+  @override
+  Size get preferredSize => const Size.fromHeight(62);
+}
+
+/// ---------------------------------------------------------
+/// MAP OVERLAY — Route pill (top-left)
+/// ---------------------------------------------------------
+class RouteOverlayPill extends StatelessWidget {
   final String routeNumber;
   final String from;
   final String to;
 
-  const RoutePill({
+  const RouteOverlayPill({
     super.key,
     required this.routeNumber,
     required this.from,
@@ -23,13 +112,13 @@ class RoutePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         color: CustomColor.card(context),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
+            color: Colors.black.withOpacity(.10),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -39,50 +128,82 @@ class RoutePill extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: CustomColor.routePillBg,
-              borderRadius: BorderRadius.circular(16),
+              color: CustomColor.actionBlue,
+              borderRadius: BorderRadius.circular(20),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Text('Route',
-                    style: TextStyle(color: Colors.white, fontSize: 10)),
-              ],
+            child: Text(
+              routeNumber,
+              maxLines: 2,
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.bold,
+                height: 1.15,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          // Flexible + ellipsis: this is the Row that used to overflow.
+          Flexible(
+            child: Text(
+              "$from → $to",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14,
+                height: 1.2,
+                color: CustomColor.textPrimary(context),
+              ),
             ),
           ),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(routeNumber,
-                  style: TextStyle(
-                      color: CustomColor.textPrimary(context),
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13)),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(from,
-                      style: TextStyle(
-                          color: CustomColor.textPrimary(context),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13)),
-                  const SizedBox(width: 4),
-                  Icon(Icons.arrow_forward,
-                      size: 12, color: CustomColor.textSecondary(context)),
-                  const SizedBox(width: 4),
-                  Text(to,
-                      style: TextStyle(
-                          color: CustomColor.textPrimary(context),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13)),
-                ],
+        ],
+      ),
+    );
+  }
+}
+
+/// ---------------------------------------------------------
+/// MAP OVERLAY — GPS status pill (top-right)
+/// ---------------------------------------------------------
+class GpsStatusPill extends StatelessWidget {
+  final String text;
+
+  const GpsStatusPill({super.key, required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      decoration: BoxDecoration(
+        color: CustomColor.card(context),
+        borderRadius: BorderRadius.circular(26),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(.10),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.circle, size: 8, color: CustomColor.success),
+          const SizedBox(width: 7),
+          Flexible(
+            child: Text(
+              text,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 13.5,
+                color: CustomColor.textPrimary(context),
               ),
-            ],
+            ),
           ),
         ],
       ),
@@ -90,28 +211,38 @@ class RoutePill extends StatelessWidget {
   }
 }
 
-/// Small pill: "● GPS 100% • 5s ago"
-class GpsStatusBadge extends StatelessWidget {
-  final double signalPercent;
-  final int updatedSecondsAgo;
+/// ---------------------------------------------------------
+/// MAP OVERLAY — small chips floating over the map
+/// ---------------------------------------------------------
+class MapChip extends StatelessWidget {
+  final String label;
+  final Color background;
+  final Color textColor;
+  final IconData? icon;
+  final Color? iconColor;
+  final bool showDot;
 
-  const GpsStatusBadge({
+  const MapChip({
     super.key,
-    required this.signalPercent,
-    required this.updatedSecondsAgo,
+    required this.label,
+    required this.background,
+    required this.textColor,
+    this.icon,
+    this.iconColor,
+    this.showDot = false,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
       decoration: BoxDecoration(
-        color: CustomColor.card(context),
-        borderRadius: BorderRadius.circular(24),
+        color: background,
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.08),
-            blurRadius: 8,
+            color: Colors.black.withOpacity(.12),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
@@ -119,21 +250,24 @@ class GpsStatusBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 8,
-            height: 8,
-            decoration: const BoxDecoration(
-              color: CustomColor.gpsActiveDot,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'GPS ${signalPercent.toInt()}% • ${updatedSecondsAgo}s ago',
-            style: TextStyle(
-              color: CustomColor.textPrimary(context),
-              fontWeight: FontWeight.w600,
-              fontSize: 12,
+          if (showDot) ...[
+            const Icon(Icons.circle, size: 7, color: CustomColor.green),
+            const SizedBox(width: 6),
+          ],
+          if (icon != null) ...[
+            Icon(icon, size: 13, color: iconColor ?? textColor),
+            const SizedBox(width: 5),
+          ],
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
             ),
           ),
         ],
@@ -142,216 +276,36 @@ class GpsStatusBadge extends StatelessWidget {
   }
 }
 
-/// Paints the dashed diagonal route line on the map.
-class DashedRoutePainter extends CustomPainter {
-  final Color color;
-  const DashedRoutePainter({required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 6
-      ..strokeCap = StrokeCap.round
-      ..style = PaintingStyle.stroke;
-
-    final path = Path()
-      ..moveTo(size.width * 0.16, size.height * 0.98)
-      ..quadraticBezierTo(
-        size.width * 0.30,
-        size.height * 0.62,
-        size.width * 0.40,
-        size.height * 0.52,
-      )
-      ..quadraticBezierTo(
-        size.width * 0.55,
-        size.height * 0.40,
-        size.width * 0.62,
-        size.height * 0.22,
-      )
-      ..lineTo(size.width * 0.92, size.height * 0.02);
-
-    const dashWidth = 10.0;
-    const dashSpace = 8.0;
-    for (final metric in path.computeMetrics()) {
-      double distance = 0;
-      while (distance < metric.length) {
-        final next = distance + dashWidth;
-        canvas.drawPath(
-          metric.extractPath(distance, next.clamp(0, metric.length)),
-          paint,
-        );
-        distance = next + dashSpace;
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant DashedRoutePainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-/// The stylized map panel: background, dashed route, stop markers, live bus
-/// marker, "You are here" tooltip, and floating locate/layers controls.
-class LiveMapPanel extends StatelessWidget {
-  final String nextStopLabel;
-  final String vehiclePlate;
-  final VoidCallback onLocatePressed;
-  final VoidCallback onLayersPressed;
-  final double height;
-
-  const LiveMapPanel({
-    super.key,
-    required this.nextStopLabel,
-    required this.vehiclePlate,
-    required this.onLocatePressed,
-    required this.onLayersPressed,
-    this.height = 480,
-  });
+/// Bus marker with the soft halo behind it.
+class BusPulseMarker extends StatelessWidget {
+  const BusPulseMarker({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: height,
-      width: double.infinity,
+      width: 74,
+      height: 74,
       child: Stack(
+        alignment: Alignment.center,
         children: [
-          // Map background
-          Container(color: CustomColor.mapBackground(context)),
-
-          // Dashed route line
-          Positioned.fill(
-            child: CustomPaint(
-              painter: DashedRoutePainter(color: CustomColor.routeLine(context)),
+          Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: CustomColor.actionBlue.withOpacity(.18),
             ),
           ),
-
-          // Route end marker (top right)
-          const Positioned(
-            top: 12,
-            right: 26,
-            child: _EndpointDot(color: CustomColor.primary),
-          ),
-
-          // Passed waypoint marker
-          Positioned(
-            top: height * 0.44,
-            right: 46,
-            child: _EndpointDot(color: CustomColor.primary),
-          ),
-
-          // Vehicle plate chip
-          Positioned(
-            top: height * 0.48,
-            left: 18,
-            child: _PlateChip(plate: vehiclePlate),
-          ),
-
-          // Next stop label chip
-          Positioned(
-            top: height * 0.40,
-            left: 130,
-            child: _InfoChip(
-              icon: Icons.location_on,
-              label: nextStopLabel,
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: CustomColor.actionBlue,
+              border: Border.all(color: Colors.white, width: 3),
             ),
-          ),
-
-          // Live bus marker + "You are here" tooltip
-          Positioned(
-            top: height * 0.52,
-            left: size(context).width * 0.28,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _BusMarker(),
-              ],
-            ),
-          ),
-          Positioned(
-            top: height * 0.58,
-            left: size(context).width * 0.40,
-            child: const _HereTooltip(),
-          ),
-
-          // Lower waypoint (unvisited)
-          Positioned(
-            top: height * 0.78,
-            left: 108,
-            child: _EndpointDot(
-              color: CustomColor.textMutedLabel(context),
-              filled: false,
-            ),
-          ),
-
-          // Floating map controls
-          Positioned(
-            right: 16,
-            bottom: 16,
-            child: Column(
-              children: [
-                _MapControlButton(
-                  icon: Icons.my_location,
-                  onTap: onLocatePressed,
-                ),
-                const SizedBox(height: 12),
-                _MapControlButton(
-                  icon: Icons.layers_outlined,
-                  onTap: onLayersPressed,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Size size(BuildContext context) => MediaQuery.of(context).size;
-}
-
-class _EndpointDot extends StatelessWidget {
-  final Color color;
-  final bool filled;
-  const _EndpointDot({required this.color, this.filled = true});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 14,
-      height: 14,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: filled ? Colors.white : Colors.white,
-        border: Border.all(color: color, width: 3),
-      ),
-    );
-  }
-}
-
-class _PlateChip extends StatelessWidget {
-  final String plate;
-  const _PlateChip({required this.plate});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111827),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.circle, size: 8, color: CustomColor.gpsActiveDot),
-          const SizedBox(width: 6),
-          Text(
-            plate,
-            style: const TextStyle(
+            child: const Icon(
+              Icons.directions_bus_filled,
               color: Colors.white,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              size: 20,
             ),
           ),
         ],
@@ -360,164 +314,87 @@ class _PlateChip extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
+/// Square floating map control (recenter / layers).
+class MapSquareButton extends StatelessWidget {
   final IconData icon;
-  final String label;
-  const _InfoChip({required this.icon, required this.label});
+  final VoidCallback? onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: CustomColor.card(context),
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6),
-        ],
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: CustomColor.primary),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: CustomColor.primary,
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _BusMarker extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 52,
-      height: 52,
-      alignment: Alignment.center,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: CustomColor.busMarkerRing(context),
-      ),
-      child: Container(
-        width: 34,
-        height: 34,
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: CustomColor.busMarkerFill,
-        ),
-        child: const Icon(Icons.directions_bus, color: Colors.white, size: 18),
-      ),
-    );
-  }
-}
-
-class _HereTooltip extends StatelessWidget {
-  const _HereTooltip();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: CustomColor.hereTooltipBg,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: const Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.location_on, size: 14, color: Colors.white),
-          SizedBox(width: 4),
-          Text(
-            'You are here',
-            style: TextStyle(
-                color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _MapControlButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  const _MapControlButton({required this.icon, required this.onTap});
+  const MapSquareButton({super.key, required this.icon, this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: CustomColor.mapControlBg(context),
-      shape: const CircleBorder(),
+      color: CustomColor.card(context),
+      borderRadius: BorderRadius.circular(14),
       elevation: 3,
       child: InkWell(
-        customBorder: const CircleBorder(),
         onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
         child: Padding(
           padding: const EdgeInsets.all(12),
-          child: Icon(icon, color: CustomColor.textPrimary(context), size: 20),
+          child: Icon(icon, size: 21, color: CustomColor.actionBlue),
         ),
       ),
     );
   }
 }
 
-/// Drag handle shown at the top of the bottom sheet content.
-class SheetDragHandle extends StatelessWidget {
-  const SheetDragHandle({super.key});
+/// ---------------------------------------------------------
+/// BOTTOM SHEET — grab handle
+/// ---------------------------------------------------------
+class SheetGrabHandle extends StatelessWidget {
+  const SheetGrabHandle({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Container(
+        width: 46,
+        height: 5,
         margin: const EdgeInsets.symmetric(vertical: 10),
-        width: 40,
-        height: 4,
         decoration: BoxDecoration(
           color: CustomColor.border(context),
-          borderRadius: BorderRadius.circular(4),
+          borderRadius: BorderRadius.circular(10),
         ),
       ),
     );
   }
 }
 
-/// Vehicle summary card: bus icon, plate, tag, ACTIVE badge, plate/driver line.
-class VehicleInfoCard extends StatelessWidget {
-  final String vehiclePlate;
-  final String fullPlateNumber;
-  final String driverName;
-  final String serviceTag;
-  final bool isActive;
+/// ---------------------------------------------------------
+/// BOTTOM SHEET — vehicle header
+/// ---------------------------------------------------------
+class VehicleHeaderRow extends StatelessWidget {
+  final String busNumber;
+  final String serviceType;
+  final String statusLabel;
+  final String subtitle;
 
-  const VehicleInfoCard({
+  const VehicleHeaderRow({
     super.key,
-    required this.vehiclePlate,
-    required this.fullPlateNumber,
-    required this.driverName,
-    required this.serviceTag,
-    required this.isActive,
+    required this.busNumber,
+    required this.serviceType,
+    required this.statusLabel,
+    required this.subtitle,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
-          width: 44,
-          height: 44,
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
-            color: CustomColor.secondaryBlue,
-            borderRadius: BorderRadius.circular(12),
+            color: CustomColor.softBlue(context),
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: const Icon(Icons.directions_bus, color: CustomColor.primary),
+          child: Icon(
+            Icons.directions_bus_filled,
+            color: CustomColor.actionBlue,
+            size: 24,
+          ),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -526,28 +403,77 @@ class VehicleInfoCard extends StatelessWidget {
             children: [
               Row(
                 children: [
+                  // Bus number takes what's left, chips keep their size.
                   Flexible(
                     child: Text(
-                      vehiclePlate,
+                      busNumber,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        fontSize: 19,
+                        fontWeight: FontWeight.bold,
                         color: CustomColor.textPrimary(context),
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  _Tag(text: serviceTag),
+                  Container(
+                    constraints: const BoxConstraints(maxWidth: 88),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CustomColor.softBlue(context),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      serviceType,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11.5,
+                        height: 1.15,
+                        fontWeight: FontWeight.w600,
+                        color: CustomColor.accentBlue1,
+                      ),
+                    ),
+                  ),
                   const SizedBox(width: 8),
-                  _ActiveBadge(isActive: isActive),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: CustomColor.success,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.circle, size: 7, color: Colors.white),
+                        const SizedBox(width: 5),
+                        Text(
+                          statusLabel,
+                          style: const TextStyle(
+                            fontSize: 10.5,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 5),
               Text(
-                'Plate: $fullPlateNumber • Driver: $driverName',
+                subtitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 12,
+                  fontSize: 13,
                   color: CustomColor.textSecondary(context),
                 ),
               ),
@@ -559,134 +485,112 @@ class VehicleInfoCard extends StatelessWidget {
   }
 }
 
-class _Tag extends StatelessWidget {
-  final String text;
-  const _Tag({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: CustomColor.tagBg(context),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: CustomColor.tagText(context),
-        ),
-      ),
-    );
-  }
-}
-
-class _ActiveBadge extends StatelessWidget {
-  final bool isActive;
-  const _ActiveBadge({required this.isActive});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: CustomColor.activeBadgeBg(context),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: const BoxDecoration(
-              color: CustomColor.success,
-              shape: BoxShape.circle,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Text(
-            isActive ? 'ACTIVE' : 'INACTIVE',
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              color: CustomColor.activeBadgeText(context),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Generic 2x2 grid stat card: "ARRIVAL IN / 3 mins / Live ETA to pickup".
-class StatCard extends StatelessWidget {
-  final String label;
+/// ---------------------------------------------------------
+/// BOTTOM SHEET — metric card (2x2 grid)
+/// ---------------------------------------------------------
+class LiveMetricCard extends StatelessWidget {
+  final String title;
   final IconData icon;
-  final Widget valueWidget;
-  final String? footer;
-  final Color? footerColor;
+  final Color? iconColor;
+  final String value;
+  final String? valueSuffix;
+  final String subtitle;
+  final Color? valueColor;
+  final Color? subtitleColor;
+  final double? progress;
 
-  /// Optional extra content rendered below the value/footer,
-  /// e.g. a [CrowdProgressBar].
-  final Widget? trailingContent;
-
-  const StatCard({
+  const LiveMetricCard({
     super.key,
-    required this.label,
+    required this.title,
     required this.icon,
-    required this.valueWidget,
-    this.footer,
-    this.footerColor,
-    this.trailingContent,
+    required this.value,
+    required this.subtitle,
+    this.iconColor,
+    this.valueSuffix,
+    this.valueColor,
+    this.subtitleColor,
+    this.progress,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: CustomColor.card(context),
+        color: CustomColor.softBlue(context),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: CustomColor.border(context)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.4,
-                  color: CustomColor.textMutedLabel(context),
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: .4,
+                    color: CustomColor.textSecondary(context),
+                  ),
                 ),
               ),
-              Icon(icon, size: 16, color: CustomColor.textMutedLabel(context)),
+              const SizedBox(width: 6),
+              Icon(icon, size: 17, color: iconColor ?? CustomColor.accentBlue1),
             ],
           ),
           const SizedBox(height: 8),
-          valueWidget,
-          if (footer != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              footer!,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                color: footerColor ?? CustomColor.textSecondary(context),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: RichText(
+              text: TextSpan(
+                children: [
+                  TextSpan(
+                    text: value,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: valueColor ?? CustomColor.textPrimary(context),
+                    ),
+                  ),
+                  if (valueSuffix != null)
+                    TextSpan(
+                      text: valueSuffix,
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: CustomColor.textSecondary(context),
+                      ),
+                    ),
+                ],
               ),
             ),
-          ],
-          if (trailingContent != null) ...[
+          ),
+          const SizedBox(height: 6),
+          Text(
+            subtitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12.5,
+              color: subtitleColor ?? CustomColor.textSecondary(context),
+            ),
+          ),
+          if (progress != null) ...[
             const SizedBox(height: 8),
-            trailingContent!,
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: LinearProgressIndicator(
+                value: progress!.clamp(0.0, 1.0),
+                minHeight: 6,
+                backgroundColor: CustomColor.border(context),
+                valueColor: AlwaysStoppedAnimation(CustomColor.accentBlue1),
+              ),
+            ),
           ],
         ],
       ),
@@ -694,26 +598,144 @@ class StatCard extends StatelessWidget {
   }
 }
 
-/// Crowd progress bar used inside the CROWD stat card.
-class CrowdProgressBar extends StatelessWidget {
-  final double ratio;
-  const CrowdProgressBar({super.key, required this.ratio});
+/// Next-stop card — value is a place name, so it needs its own layout.
+class NextStopCard extends StatelessWidget {
+  final String stopName;
+  final String status;
+
+  const NextStopCard({
+    super.key,
+    required this.stopName,
+    required this.status,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(6),
-      child: LinearProgressIndicator(
-        value: ratio.clamp(0, 1),
-        minHeight: 6,
-        backgroundColor: CustomColor.progressTrack(context),
-        valueColor: const AlwaysStoppedAnimation<Color>(CustomColor.progressFill),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: CustomColor.softBlue(context),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  "NEXT STOP",
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: .4,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(Icons.navigation_outlined,
+                  size: 17, color: CustomColor.success),
+            ],
+          ),
+          const SizedBox(height: 8),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(
+              stopName,
+              maxLines: 1,
+              style: TextStyle(
+                fontSize: 19,
+                fontWeight: FontWeight.bold,
+                color: CustomColor.textPrimary(context),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            status,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w600,
+              color: CustomColor.success,
+            ),
+          ),
+        ],
       ),
     );
   }
 }
 
-/// One row inside the Route Milestones card.
+/// ---------------------------------------------------------
+/// BOTTOM SHEET — route milestones
+/// ---------------------------------------------------------
+class RouteMilestonesCard extends StatelessWidget {
+  final String title;
+  final String trailing;
+  final List<RouteMilestone> milestones;
+
+  const RouteMilestonesCard({
+    super.key,
+    required this.title,
+    required this.trailing,
+    required this.milestones,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: CustomColor.softBlue(context),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: .5,
+                    color: CustomColor.textSecondary(context),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                trailing,
+                style: TextStyle(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w600,
+                  color: CustomColor.accentBlue1,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          for (int i = 0; i < milestones.length; i++)
+            MilestoneTile(
+              milestone: milestones[i],
+              isLast: i == milestones.length - 1,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class MilestoneTile extends StatelessWidget {
   final RouteMilestone milestone;
   final bool isLast;
@@ -721,42 +743,42 @@ class MilestoneTile extends StatelessWidget {
   const MilestoneTile({
     super.key,
     required this.milestone,
-    this.isLast = false,
+    required this.isLast,
   });
 
-  Color _dotColor(BuildContext context) {
-    switch (milestone.status) {
-      case MilestoneStatus.passed:
-        return CustomColor.milestonePassed(context);
-      case MilestoneStatus.current:
-        return CustomColor.milestoneCurrent;
-      case MilestoneStatus.scheduled:
-        return CustomColor.milestoneUpcoming(context);
-      case MilestoneStatus.destination:
-        return CustomColor.milestoneDestination;
+  Color _dotColor() {
+    switch (milestone.state) {
+      case MilestoneState.passed:
+        return const Color(0xFF9AA7BD);
+      case MilestoneState.current:
+        return CustomColor.actionBlue;
+      case MilestoneState.scheduled:
+        return const Color(0xFFB8C2D4);
+      case MilestoneState.destination:
+        return CustomColor.success;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isPassed = milestone.status == MilestoneStatus.passed;
-    final isCurrent = milestone.status == MilestoneStatus.current;
+    final isCurrent = milestone.state == MilestoneState.current;
+    final isPassed = milestone.state == MilestoneState.passed;
 
     return IntrinsicHeight(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ---- Rail ----
           Column(
             children: [
               Container(
-                width: isCurrent ? 14 : 10,
-                height: isCurrent ? 14 : 10,
-                margin: const EdgeInsets.only(top: 4),
+                width: isCurrent ? 16 : 11,
+                height: isCurrent ? 16 : 11,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isCurrent ? Colors.white : _dotColor(context),
+                  color: isCurrent ? Colors.white : _dotColor(),
                   border: isCurrent
-                      ? Border.all(color: CustomColor.milestoneCurrent, width: 3)
+                      ? Border.all(color: CustomColor.actionBlue, width: 5)
                       : null,
                 ),
               ),
@@ -764,16 +786,17 @@ class MilestoneTile extends StatelessWidget {
                 Expanded(
                   child: Container(
                     width: 2,
-                    margin: const EdgeInsets.symmetric(vertical: 2),
                     color: CustomColor.border(context),
                   ),
                 ),
             ],
           ),
           const SizedBox(width: 12),
+
+          // ---- Text ----
           Expanded(
             child: Padding(
-              padding: EdgeInsets.only(bottom: isLast ? 0 : 18),
+              padding: EdgeInsets.only(bottom: isLast ? 0 : 16),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -783,61 +806,39 @@ class MilestoneTile extends StatelessWidget {
                       children: [
                         Text(
                           milestone.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: isCurrent ? 15 : 13,
+                            fontSize: isCurrent ? 17 : 14.5,
                             fontWeight:
-                            isCurrent ? FontWeight.w700 : FontWeight.w600,
-                            color: isPassed
-                                ? CustomColor.textMutedLabel(context)
-                                : CustomColor.textPrimary(context),
+                            isCurrent ? FontWeight.bold : FontWeight.w500,
                             decoration: isPassed
                                 ? TextDecoration.lineThrough
                                 : TextDecoration.none,
+                            color: isPassed
+                                ? CustomColor.textSecondary(context)
+                                : CustomColor.textPrimary(context),
                           ),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           milestone.subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
+                            fontSize: 12.5,
+                            fontWeight:
+                            isCurrent ? FontWeight.w600 : FontWeight.normal,
                             color: isCurrent
-                                ? CustomColor.success
-                                : CustomColor.textMutedLabel(context),
+                                ? CustomColor.accentBlue1
+                                : CustomColor.textSecondary(context),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  if (isPassed)
-                    Icon(Icons.check,
-                        size: 18, color: CustomColor.textMutedLabel(context)),
-                  if (isCurrent)
-                    Container(
-                      padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: CustomColor.nowBadgeBg(context),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        'NOW',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: CustomColor.nowBadgeText(context),
-                        ),
-                      ),
-                    ),
-                  if (milestone.etaMinutesLabel != null)
-                    Text(
-                      milestone.etaMinutesLabel!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: CustomColor.textMutedLabel(context),
-                      ),
-                    ),
+                  const SizedBox(width: 10),
+                  _trailing(context),
                 ],
               ),
             ),
@@ -846,50 +847,93 @@ class MilestoneTile extends StatelessWidget {
       ),
     );
   }
+
+  Widget _trailing(BuildContext context) {
+    if (milestone.state == MilestoneState.passed) {
+      return Icon(
+        Icons.check,
+        size: 18,
+        color: CustomColor.textSecondary(context),
+      );
+    }
+
+    if (milestone.state == MilestoneState.current) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: CustomColor.softBlueStrong(context),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          milestone.trailing,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            color: CustomColor.accentBlue1,
+          ),
+        ),
+      );
+    }
+
+    return Text(
+      milestone.trailing,
+      style: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w600,
+        color: CustomColor.textPrimary(context),
+      ),
+    );
+  }
 }
 
-/// Bottom bar action button (Alert / Share / SOS).
-class BottomActionButton extends StatelessWidget {
+/// ---------------------------------------------------------
+/// BOTTOM SHEET — action buttons (Alert / Share / SOS)
+/// ---------------------------------------------------------
+class LiveActionButton extends StatelessWidget {
   final IconData icon;
   final String label;
   final Color background;
   final Color foreground;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
-  const BottomActionButton({
+  const LiveActionButton({
     super.key,
     required this.icon,
     required this.label,
     required this.background,
     required this.foreground,
-    required this.onTap,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: background,
-      borderRadius: BorderRadius.circular(14),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 18, color: foreground),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w700,
-                  color: foreground,
-                ),
+    return ElevatedButton(
+      onPressed: onTap,
+      style: ElevatedButton.styleFrom(
+        backgroundColor: background,
+        foregroundColor: foreground,
+        elevation: 0,
+        padding: const EdgeInsets.symmetric(horizontal: 10),
+        minimumSize: const Size(0, 54),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      ),
+      // FittedBox keeps "Alert"/"Share"/"SOS" inside the button on small
+      // screens instead of letting the Row overflow.
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 19),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../pages/Passenger_pages/alert/alert_screen.dart';
+import '../../pages/Passenger_pages/live_track/live_track_screen.dart';
 import '../../pages/Passenger_pages/passenger_dashboard/passenger_dashboard.dart';
 import '../../pages/Passenger_pages/profile/profile_screen.dart';
 import '../color/custom_color.dart';
@@ -19,8 +20,8 @@ class _UserNavScreen
   int currentIndex = 0;
 
   final List<Widget> pages = [
-    const TransitHomeScreen(),
-    // const P_TrackScreen(),
+     const TransitHomeScreen(),
+     const LiveTrackScreen(),
      const AlertsScreen(),
     const PassengerProfileScreen(),
   ];
@@ -29,7 +30,9 @@ class _UserNavScreen
   Widget build(BuildContext context) {
     return Scaffold(
 
-        body: pages[currentIndex],
+        body: SafeArea(
+            bottom: false,
+            child: pages[currentIndex]),
         bottomNavigationBar: NavigationBarTheme(
           data: NavigationBarThemeData(
             labelTextStyle:
