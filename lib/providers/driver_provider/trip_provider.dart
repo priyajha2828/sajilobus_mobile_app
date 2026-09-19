@@ -333,6 +333,25 @@ class TripProvider extends ChangeNotifier {
     }
   }
 
+  Future<void> endTrip() async {
+    if (activeTripId == null) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null) {
+        await DioClient.dio.post(
+          "/trips/$activeTripId/end",
+          options: Options(headers: {"Authorization": "Bearer $token"}),
+        );
+      }
+    } catch (e) {
+      debugPrint("TripProvider endTrip error: $e");
+    } finally {
+      activeTripId = null;
+      notifyListeners();
+    }
+  }
+
   void updateSpeed(int speed) {
     currentSpeed = speed;
     notifyListeners();

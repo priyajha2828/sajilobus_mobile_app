@@ -118,12 +118,31 @@ class _ReportIssueBody extends StatelessWidget {
                       WarningBanner1(text: provider.warningBannerText),
                       const SizedBox(height: 16),
                       PrimaryActionButton(
-                        label: 'SUBMIT ISSUE TO DISPATCH',
-                        icon: Icons.play_arrow_rounded,
+                        label: provider.isSubmitting
+                            ? 'SUBMITTING ISSUE...'
+                            : 'SUBMIT ISSUE TO DISPATCH',
+                        icon: provider.isSubmitting
+                            ? Icons.hourglass_top
+                            : Icons.play_arrow_rounded,
                         background: CustomColor.primary,
-                        onTap: () => context
-                            .read<ReportIssueProvider>()
-                            .submitIssueToDispatch(),
+                        onTap: provider.isSubmitting
+                            ? () {}
+                            : () async {
+                                final p = context.read<ReportIssueProvider>();
+                                final success = await p.submitIssueToDispatch();
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? (p.successMessage ?? 'Issue reported to dispatch!')
+                                            : (p.errorMessage ?? 'Failed to report issue'),
+                                      ),
+                                      backgroundColor: success ? Colors.green : Colors.red,
+                                    ),
+                                  );
+                                }
+                              },
                       ),
                       const SizedBox(height: 10),
                       Center(

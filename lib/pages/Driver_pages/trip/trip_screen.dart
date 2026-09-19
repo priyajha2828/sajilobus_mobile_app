@@ -557,6 +557,27 @@ class _DriverActionsCard extends StatelessWidget {
                 onSkip: trip.skipStop,
                 onEmergency: trip.triggerEmergency,
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () => _confirmEndTrip(context, trip),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red.shade700,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    elevation: 0,
+                  ),
+                  icon: const Icon(Icons.flag_rounded, size: 20),
+                  label: const Text(
+                    'END TRIP & COMPLETE RUN',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              ),
             ],
           ),
         ),
@@ -566,6 +587,50 @@ class _DriverActionsCard extends StatelessWidget {
           child: SosFloatingButton(onTap: trip.triggerEmergency),
         ),
       ],
+    );
+  }
+
+  void _confirmEndTrip(BuildContext context, TripProvider trip) {
+    showDialog(
+      context: context,
+      builder: (dialogCtx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        title: const Row(
+          children: [
+            Icon(Icons.flag_rounded, color: Colors.red),
+            SizedBox(width: 8),
+            Text('End Active Trip?'),
+          ],
+        ),
+        content: const Text(
+          'Are you sure you want to end this trip? Ending the trip will mark it completed and remove your vehicle from active passenger tracking maps.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogCtx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(dialogCtx);
+              await trip.endTrip();
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Trip ended successfully. Vehicle removed from live map.'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            child: const Text('End Trip'),
+          ),
+        ],
+      ),
     );
   }
 }

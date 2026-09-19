@@ -1,4 +1,9 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/driver_service.dart';
 
 /// One tappable tile in the "Select Issue Category" grid.
 class IssueCategoryItem {
@@ -13,7 +18,6 @@ class SeverityLevelItem {
   final String label;
 
   /// Extra line shown only when this severity is selected
-  /// (e.g. "Delay > 30m" under Critical).
   final String? subtitle;
 
   const SeverityLevelItem({required this.label, this.subtitle});
@@ -36,11 +40,10 @@ extension IncidentStageX on IncidentStage {
     }
   }
 
-  /// Small status line shown under the stage label.
   String get subLabel {
     switch (this) {
       case IncidentStage.submitted:
-        return '09:35';
+        return 'Just now';
       case IncidentStage.underReview:
         return 'In Progress';
       case IncidentStage.dispatched:
@@ -55,18 +58,28 @@ extension IncidentStageX on IncidentStage {
 class PhotoAttachment {
   final String id;
   final String label;
+  final File? file;
+  final String? base64Data;
 
-  const PhotoAttachment({required this.id, required this.label});
+  const PhotoAttachment({
+    required this.id,
+    required this.label,
+    this.file,
+    this.base64Data,
+  });
 }
 
 class ReportIssueProvider extends ChangeNotifier {
+  final ImagePicker _picker = ImagePicker();
+  final DriverService _driverService = DriverService();
+
   // ---------------- Top banner / navigation ----------------
   final String corridorLabel = 'KOSHI CORRIDOR DISPATCH LINK';
   final String backLinkLabel = 'Return to Route';
   final String pageTitle = 'Report Operational Issue';
   final String pageSubtitle =
       'Send live vehicle diagnostics, geo-stamp, and incident details '
-      'directly to Biratnagar Central Fleet Ops.';
+      'directly to Central Fleet Ops.';
 
   // ---------------- Auto-locked diagnostics ----------------
   final bool isGpsLocked = true;
@@ -114,9 +127,7 @@ class ReportIssueProvider extends ChangeNotifier {
   // ---------------- Issue description ----------------
   final TextEditingController descriptionController = TextEditingController(
     text:
-    'Engine coolant temperature gauge spiked to 105°C near Tankisinuwari '
-        'chowk. Pulled over safely to check fan belt. Requesting backup '
-        'mechanic team.',
+    'Engine coolant temperature gauge spiked near Tankisinuwari chowk. Pulled over safely. Requesting mechanic backup team.',
   );
   final int maxDescriptionChars = 300;
   bool isTelemetrySynced = true;
@@ -131,28 +142,61 @@ class ReportIssueProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// Hook this up to your speech-to-text service.
   void startVoiceRecording() {
-    // TODO: integrate voice-to-text capture.
     notifyListeners();
   }
 
   // ---------------- Photo attachments ----------------
-  final List<PhotoAttachment> photos = [
-    const PhotoAttachment(id: '1', label: 'TEMP_HUD'),
-  ];
+  final List<PhotoAttachment> photos = [];
 
-  void takePhoto() {
-    // TODO: integrate camera capture.
-    photos.add(
-      PhotoAttachment(id: DateTime.now().millisecondsSinceEpoch.toString(), label: 'PHOTO'),
-    );
-    notifyListeners();
+  Future<void> takePhoto() async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 70,
+        maxWidth: 1024,
+      );
+      if (photo != null) {
+        final bytes = await photo.readAsBytes();
+        final base64Str = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        photos.add(
+          PhotoAttachment(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            label: 'CAM_${photos.length + 1}',
+            file: File(photo.path),
+            base64Data: base64Str,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error taking photo: $e');
+    }
   }
 
-  void browseFiles() {
-    // TODO: integrate file picker.
-    notifyListeners();
+  Future<void> browseFiles() async {
+    try {
+      final XFile? photo = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 70,
+        maxWidth: 1024,
+      );
+      if (photo != null) {
+        final bytes = await photo.readAsBytes();
+        final base64Str = 'data:image/jpeg;base64,${base64Encode(bytes)}';
+        photos.add(
+          PhotoAttachment(
+            id: DateTime.now().millisecondsSinceEpoch.toString(),
+            label: 'IMG_${photos.length + 1}',
+            file: File(photo.path),
+            base64Data: base64Str,
+          ),
+        );
+        notifyListeners();
+      }
+    } catch (e) {
+      debugPrint('Error picking photo from gallery: $e');
+    }
   }
 
   void removePhoto(String id) {
@@ -162,43 +206,74 @@ class ReportIssueProvider extends ChangeNotifier {
 
   // ---------------- Submit ----------------
   final String warningBannerText =
-      'High severity triggers automated SMS alerts to Koshi Regional '
-      'Workshop and pauses passenger ticketing for subsequent stops on '
-      'Biratnagar Highway.';
+      'High severity triggers automated SMS alerts to Regional Workshop '
+      'and notifies passengers waiting at subsequent stops.';
   final String radioDispatchContact = '+977-21-460290';
 
   bool isSubmitting = false;
+  String? successMessage;
+  String? errorMessage;
 
-  Future<void> submitIssueToDispatch() async {
+  Future<bool> submitIssueToDispatch() async {
     isSubmitting = true;
+    errorMessage = null;
+    successMessage = null;
     notifyListeners();
-    // TODO: call your dispatch API here.
-    await Future.delayed(const Duration(milliseconds: 600));
+
+    try {
+      final category = categories[selectedCategoryIndex].label;
+      final severity = severities[selectedSeverityIndex].label;
+      final description = descriptionController.text;
+
+      String? photoBase64;
+      if (photos.isNotEmpty) {
+        photoBase64 = photos.last.base64Data;
+      }
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString('auth_token') ?? '';
+
+      final response = await _driverService.reportIssue(token, {
+        'category': category,
+        'severity': severity,
+        'description': description,
+        if (photoBase64 != null) 'photo': photoBase64,
+      });
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        successMessage = response.data['message'] ?? 'Issue submitted successfully!';
+        isSubmitting = false;
+        notifyListeners();
+        return true;
+      } else {
+        errorMessage = response.data['message'] ?? 'Failed to submit issue.';
+      }
+    } catch (e) {
+      errorMessage = 'Error submitting issue: $e';
+    }
+
     isSubmitting = false;
     notifyListeners();
+    return false;
   }
 
   // ---------------- Incident tracking card ----------------
   final String reportId = '#REP-8942';
-  final String loggedAgo = 'Logged 6m ago';
+  final String loggedAgo = 'Logged just now';
   final String severityBadge = 'High Severity';
-  final String issueTitle = 'Engine Coolant Warning';
-  final IncidentStage currentStage = IncidentStage.underReview;
+  final String issueTitle = 'Operational Alert Logged';
+  final IncidentStage currentStage = IncidentStage.submitted;
 
   final String opsAuthor = 'Ops Dispatch Desk (Biratnagar Central)';
   final String opsMessage =
-      '"Operator Sunil Shrestha reviewing telemetry data. Keep vehicle '
-      'parked in shade off the main highway lane. Mobile team en route '
-      'from Duhabi depot."';
+      '"Dispatch operator reviewing report. Vehicles and waiting passengers notified."';
   final String dispatchContactName = 'Sunil Shrestha';
 
   void callDispatchContact() {
-    // TODO: integrate url_launcher tel: call.
     notifyListeners();
   }
 
   void triggerSOS() {
-    // TODO: integrate with dispatch hotline / emergency service.
     notifyListeners();
   }
 

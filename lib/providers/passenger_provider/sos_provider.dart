@@ -151,7 +151,7 @@ class PassengerSosProvider extends ChangeNotifier {
           Map? targetAlert;
           if (_lastActiveSosId != null) {
             targetAlert = alerts.firstWhere(
-              (a) => a["id"] == _lastActiveSosId,
+              (a) => a["id"]?.toString() == _lastActiveSosId?.toString(),
               orElse: () => alerts.first,
             );
           } else {
@@ -159,7 +159,7 @@ class PassengerSosProvider extends ChangeNotifier {
           }
 
           if (targetAlert != null) {
-            final String status = targetAlert["status"] ?? "PENDING";
+            final String status = (targetAlert["status"] ?? "PENDING").toString().toUpperCase();
             if (status == "RESOLVED") {
               _currentStage = DispatchStage.resolved;
               sosActivated = true;

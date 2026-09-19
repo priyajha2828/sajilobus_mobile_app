@@ -91,4 +91,12 @@ class DriverService {
       options: Options(headers: {"Authorization": "Bearer $token"}),
     );
   }
+
+  Future<Response> reportIssue(String token, Map<String, dynamic> data) async {
+    return await _dio.post(
+      "/issues",
+      data: data,
+      options: Options(headers: {"Authorization": "Bearer $token"}),
+    );
+  }
 }
