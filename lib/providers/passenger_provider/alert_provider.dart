@@ -1,4 +1,8 @@
+import 'dart:async';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sajilo_bus/config/dio_client.dart';
 
 /// Which filter pill is currently selected under "Inbox & Alerts".
 enum AlertFilter { all, busAlerts, routeUpdates, sosLogs }
@@ -12,9 +16,7 @@ enum NotificationType {
   account,
 }
 
-/// One bold/non-bold text run inside a notification body, so the UI can
-/// render mixed-weight text (e.g. "Bus **BA 2 KHA 8492** is approaching
-/// **Bargachhi Stop**.") without parsing markdown at render time.
+/// One bold/non-bold text run inside a notification body.
 class BodySegment {
   final String text;
   final bool bold;
@@ -67,14 +69,20 @@ class AlertSection {
 }
 
 class AlertsProvider extends ChangeNotifier {
-  AlertsProvider();
+  Timer? _timer;
+  List<AlertSection> _sections = [];
+
+  AlertsProvider() {
+    fetchNotifications();
+    _timer = Timer.periodic(const Duration(seconds: 4), (_) => fetchNotifications());
+  }
 
   // ---------------------------------------------------------------------
   // Live sync status strip
   // ---------------------------------------------------------------------
   final bool liveSyncActive = true;
   final String gridLabel = 'Koshi Transit Grid';
-  final int newCount = 2;
+  int get newCount => unreadCount;
 
   // ---------------------------------------------------------------------
   // Filters
@@ -86,90 +94,63 @@ class AlertsProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // ---------------------------------------------------------------------
-  // Data: sectioned notifications
-  // ---------------------------------------------------------------------
-  final List<AlertSection> _sections = [
-    AlertSection(
-      dateLabel: 'TODAY',
-      metaLabel: '2 unread',
-      items: [
-        AlertNotification(
-          id: 'bus_arrival',
-          type: NotificationType.busAlert,
-          title: 'Bus Arrival in 3 Mins',
-          isUnread: true,
-          categoryLabel: 'Bus Alert',
-          categorySub: 'Route 104',
-          timeLabel: 'Just now',
-          body: const [
-            BodySegment('Bus '),
-            BodySegment('BA 2 KHA 8492', bold: true),
-            BodySegment(' is approaching '),
-            BodySegment('Bargachhi Stop', bold: true),
-            BodySegment('. Prepare to board via front door.'),
-          ],
-          primaryActionLabel: 'View Live Bus',
-          primaryActionIcon: Icons.near_me,
-          secondaryActionLabel: 'Chime',
-          secondaryActionIcon: Icons.volume_up_outlined,
-        ),
-        AlertNotification(
-          id: 'route_diversion',
-          type: NotificationType.adminMessage,
-          title: 'Route Diversion Notice',
-          isUnread: true,
-          categoryLabel: 'Admin Message',
-          categorySub: 'Duhabi Sector',
-          timeLabel: '25m ago',
-          body: const [
-            BodySegment('Road maintenance near '),
-            BodySegment('Duhabi Bridge', bold: true),
-            BodySegment('. Expect 5–8 minutes delay for routes transiting northbound.'),
-          ],
-        ),
-      ],
-    ),
-    AlertSection(
-      dateLabel: 'YESTERDAY',
-      metaLabel: 'Archived',
-      items: [
-        AlertNotification(
-          id: 'sos_resolved',
-          type: NotificationType.sosStatus,
-          title: 'SOS Test Resolved',
-          categoryLabel: 'SOS Status',
-          categorySub: 'Drill Log #418',
-          timeLabel: '4:15 PM',
-          body: const [
-            BodySegment('Your emergency drill alert was safely resolved and archived by the central transport dispatch unit.'),
-          ],
-        ),
-        AlertNotification(
-          id: 'fare_revision',
-          type: NotificationType.schedule,
-          title: 'Fare Schedule Revision',
-          categoryLabel: 'Schedule',
-          categorySub: 'Tariffs',
-          timeLabel: '10:00 AM',
-          body: const [
-            BodySegment('Koshi Province revised student discount fares are now active. Tap card at tap-in terminals to apply automatic 33% concession.'),
-          ],
-        ),
-        AlertNotification(
-          id: 'pass_renewal',
-          type: NotificationType.account,
-          title: 'Monthly Pass Renewal',
-          categoryLabel: 'Account',
-          categorySub: 'SmartCard',
-          timeLabel: '08:12 AM',
-          body: const [
-            BodySegment('Your 30-day unlimited commuter pass will expire in 4 days. Auto-recharge is enabled via connectIPS.'),
-          ],
-        ),
-      ],
-    ),
-  ];
+  Future<void> fetchNotifications() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      final options = (token != null && token.isNotEmpty)
+          ? Options(headers: {"Authorization": "Bearer $token"})
+          : null;
+
+      final res = await DioClient.dio.get("/notifications", options: options);
+
+      if (res.statusCode == 200 && res.data["success"] == true) {
+        final List? notifs = res.data["notifications"];
+        if (notifs != null) {
+          List<AlertNotification> items = [];
+          for (var n in notifs) {
+            final String title = n["title"] ?? "Notification";
+            final String msg = n["message"] ?? "";
+            final bool isRead = n["isRead"] == true;
+            final int id = n["id"] ?? 0;
+            final String dateStr = n["createdAt"] != null
+                ? DateTime.tryParse(n["createdAt"].toString())?.toLocal().toString().split('.').first ?? ""
+                : "";
+
+            NotificationType type = NotificationType.busAlert;
+            if (title.contains("SOS") || title.contains("EMERGENCY")) {
+              type = NotificationType.sosStatus;
+            } else if (title.contains("ROUTE")) {
+              type = NotificationType.adminMessage;
+            }
+
+            items.add(AlertNotification(
+              id: id.toString(),
+              type: type,
+              title: title,
+              isUnread: !isRead,
+              categoryLabel: type == NotificationType.sosStatus ? 'SOS Status' : 'Transit Notice',
+              categorySub: 'Central Dispatch',
+              timeLabel: dateStr.isNotEmpty ? dateStr : 'Recent',
+              body: [BodySegment(msg)],
+            ));
+          }
+
+          int unreads = items.where((i) => i.isUnread).length;
+          _sections = [
+            AlertSection(
+              dateLabel: 'LIVE BACKEND ALERTS',
+              metaLabel: '$unreads unread',
+              items: items,
+            ),
+          ];
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint("Error fetching passenger notifications: $e");
+    }
+  }
 
   List<AlertSection> get sections => _sections;
 
@@ -181,47 +162,32 @@ class AlertsProvider extends ChangeNotifier {
   // ---------------------------------------------------------------------
   // Actions
   // ---------------------------------------------------------------------
-  void markAllRead() {
-    for (var s = 0; s < _sections.length; s++) {
-      final section = _sections[s];
-      final updatedItems = section.items
-          .map((n) => AlertNotification(
-        id: n.id,
-        type: n.type,
-        title: n.title,
-        isUnread: false,
-        categoryLabel: n.categoryLabel,
-        categorySub: n.categorySub,
-        timeLabel: n.timeLabel,
-        body: n.body,
-        primaryActionLabel: n.primaryActionLabel,
-        primaryActionIcon: n.primaryActionIcon,
-        secondaryActionLabel: n.secondaryActionLabel,
-        secondaryActionIcon: n.secondaryActionIcon,
-      ))
-          .toList();
-      _sections[s] = AlertSection(
-        dateLabel: section.dateLabel,
-        metaLabel: section.metaLabel == 'Archived' ? section.metaLabel : '0 unread',
-        items: updatedItems,
-      );
+  Future<void> markAllRead() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      final options = (token != null && token.isNotEmpty)
+          ? Options(headers: {"Authorization": "Bearer $token"})
+          : null;
+
+      await DioClient.dio.patch("/notifications/read-all", options: options);
+      fetchNotifications();
+    } catch (e) {
+      debugPrint("Error marking all read: $e");
     }
-    notifyListeners();
   }
 
-  void viewLiveBus(AlertNotification notification) {
-    // TODO: navigate to live bus tracking screen
-  }
+  void viewLiveBus(AlertNotification notification) {}
 
-  void playChime(AlertNotification notification) {
-    // TODO: play notification chime sound
-  }
+  void playChime(AlertNotification notification) {}
 
-  void openServiceHighlight() {
-    // TODO: navigate to service highlight / eco-corridor detail screen
-  }
+  void openServiceHighlight() {}
 
-  void openNotification(AlertNotification notification) {
-    // TODO: navigate to a notification detail screen
+  void openNotification(AlertNotification notification) {}
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 }

@@ -184,6 +184,99 @@ class _PassengerSosBody extends StatelessWidget {
                             channelLabel: provider.channelLabel,
                             onSettingsTap: p.openDispatchSettings,
                           ),
+                          if (provider.sosHistory.isNotEmpty) ...[
+                            const SizedBox(height: 18),
+                            AppCard(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.history_rounded, size: 16, color: CustomColor.primary),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'RECENT SOS ALERTS HISTORY',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 0.3,
+                                          color: CustomColor.textPrimary(context),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  ListView.separated(
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    itemCount: provider.sosHistory.length,
+                                    separatorBuilder: (_, __) => const Divider(height: 16),
+                                    itemBuilder: (context, index) {
+                                      final item = provider.sosHistory[index];
+                                      Color badgeBg;
+                                      Color badgeText;
+                                      if (item.status == "RESOLVED") {
+                                        badgeBg = CustomColor.badgeGreenBg(context);
+                                        badgeText = CustomColor.badgeGreenText(context);
+                                      } else if (item.status == "IN_PROGRESS") {
+                                        badgeBg = Colors.orange.withOpacity(0.15);
+                                        badgeText = Colors.orange;
+                                      } else {
+                                        badgeBg = CustomColor.danger.withOpacity(0.15);
+                                        badgeText = CustomColor.danger;
+                                      }
+
+                                      return Row(
+                                        children: [
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  "SOS #${item.id} • ${item.message}",
+                                                  maxLines: 2,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: CustomColor.textPrimary(context),
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  item.createdAt,
+                                                  style: TextStyle(
+                                                    fontSize: 10.5,
+                                                    color: CustomColor.textSecondary(context),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: badgeBg,
+                                              borderRadius: BorderRadius.circular(6),
+                                            ),
+                                            child: Text(
+                                              item.status,
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                color: badgeText,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                           const SizedBox(height: 18),
                           Center(
                             child: InkWell(

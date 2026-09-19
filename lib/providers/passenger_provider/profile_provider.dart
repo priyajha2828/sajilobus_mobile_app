@@ -1,6 +1,8 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../config/api_constant.dart';
 import '../../services/auth_services.dart';
 
 class ProfileProvider extends ChangeNotifier {
@@ -91,6 +93,45 @@ class ProfileProvider extends ChangeNotifier {
   void toggleAudioAnnouncements(bool value) {
     audioAnnouncements = value;
     notifyListeners();
+  }
+
+  Future<bool> submitFeedback({
+    required double rating,
+    required String category,
+    required String comment,
+  }) async {
+    try {
+      final dio = Dio();
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+
+      final bodyComment = comment.trim().isEmpty ? 'General feedback submitted via mobile app' : comment.trim();
+
+      final response = await dio.post(
+        '${ApiConstant.baseUrl}/feedback',
+        data: {
+          'name': name,
+          'email': email,
+          'rating': rating,
+          'category': category,
+          'comment': bodyComment,
+        },
+        options: Options(
+          headers: (token != null && token.isNotEmpty)
+              ? {'Authorization': 'Bearer $token'}
+              : {},
+        ),
+      );
+
+      return response.statusCode == 201 || response.statusCode == 200;
+    } catch (e) {
+      if (e is DioException) {
+        debugPrint("Error submitting feedback: ${e.response?.statusCode} ${e.response?.data}");
+      } else {
+        debugPrint("Error submitting feedback: $e");
+      }
+      return false;
+    }
   }
 
   Future<void> logout() async {

@@ -32,6 +32,8 @@ class PassengerProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _buildPreferencesCard(context, provider),
             const SizedBox(height: 16),
+            _buildFeedbackCard(context, provider),
+            const SizedBox(height: 16),
             _buildHelpDeskCard(context, provider),
             const SizedBox(height: 20),
             _buildLogoutButton(context, provider),
@@ -365,6 +367,147 @@ class PassengerProfileScreen extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildFeedbackCard(BuildContext context, ProfileProvider provider) {
+    return SectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SectionHeader(
+            icon: Icons.rate_review_outlined,
+            title: 'Feedback & Ratings',
+          ),
+          const SizedBox(height: 6),
+          const RowDivider(),
+          ActionRow(
+            leadingIcon: Icons.star_outline_rounded,
+            leadingIconBg: CustomColor.sectionIconBg(context),
+            leadingIconColor: CustomColor.primary,
+            title: 'Submit App & Service Feedback',
+            subtitle: 'Rate your bus transit experience',
+            trailing: const Icon(Icons.arrow_forward_ios_rounded,
+                size: 14, color: Colors.grey),
+            onTap: () => _showFeedbackDialog(context, provider),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog(BuildContext context, ProfileProvider provider) {
+    double rating = 5.0;
+    String category = 'General';
+    final commentController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (dialogCtx) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              title: const Row(
+                children: [
+                  Icon(Icons.feedback_rounded, color: CustomColor.primary),
+                  SizedBox(width: 8),
+                  Text('Give Feedback', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('Rating', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: List.generate(5, (index) {
+                        return IconButton(
+                          icon: Icon(
+                            index < rating ? Icons.star_rounded : Icons.star_outline_rounded,
+                            color: Colors.amber,
+                            size: 28,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              rating = index + 1.0;
+                            });
+                          },
+                        );
+                      }),
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Category', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    DropdownButtonFormField<String>(
+                      value: category,
+                      decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                      items: ['General', 'Bus Condition', 'Driver Conduct', 'App Issue', 'Route Schedule']
+                          .map((cat) => DropdownMenuItem(value: cat, child: Text(cat)))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => category = val);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    const Text('Comment / Experience', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                    const SizedBox(height: 6),
+                    TextField(
+                      controller: commentController,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        hintText: 'Share your experience or suggestions...',
+                        hintStyle: const TextStyle(fontSize: 13),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(dialogCtx).pop(),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CustomColor.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
+                  onPressed: () async {
+                    final success = await provider.submitFeedback(
+                      rating: rating,
+                      category: category,
+                      comment: commentController.text.trim(),
+                    );
+                    if (dialogCtx.mounted) {
+                      Navigator.of(dialogCtx).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                            success
+                                ? 'Thank you! Your feedback has been submitted.'
+                                : 'Failed to submit feedback. Please try again.',
+                          ),
+                          backgroundColor: success ? Colors.green : Colors.red,
+                        ),
+                      );
+                    }
+                  },
+                  child: const Text('Submit', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
