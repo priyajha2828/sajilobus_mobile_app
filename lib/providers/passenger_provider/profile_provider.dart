@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../config/api_constant.dart';
@@ -46,6 +49,13 @@ class ProfileProvider extends ChangeNotifier {
   String appFooter = 'SajiloBus Transit • App Version 3.4.1';
 
   final AuthService _authService = AuthService();
+  final ImagePicker _picker = ImagePicker();
+
+  File? _localPhotoFile;
+  bool _isUploadingPhoto = false;
+
+  File? get localPhotoFile => _localPhotoFile;
+  bool get isUploadingPhoto => _isUploadingPhoto;
 
   ProfileProvider() {
     loadUserProfile();
@@ -71,6 +81,38 @@ class ProfileProvider extends ChangeNotifier {
     } catch (e) {
       debugPrint("Error loading passenger profile: $e");
     } finally {
+      notifyListeners();
+    }
+  }
+
+  Future<void> pickAndUpdatePhoto({required bool fromCamera}) async {
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+      if (picked == null) return;
+
+      _localPhotoFile = File(picked.path);
+      notifyListeners();
+
+      _isUploadingPhoto = true;
+      notifyListeners();
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null) {
+        // TODO: aafno backend ma profile photo upload endpoint banaera yaha call garne
+        // final response = await _authService.uploadProfilePhoto(token, _localPhotoFile!);
+        // if (response.statusCode == 200) {
+        //   avatarUrl = response.data['photoUrl'];
+        // }
+      }
+    } catch (e) {
+      debugPrint("Error picking/updating passenger photo: $e");
+    } finally {
+      _isUploadingPhoto = false;
       notifyListeners();
     }
   }

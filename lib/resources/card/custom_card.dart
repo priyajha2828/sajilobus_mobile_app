@@ -5,6 +5,7 @@ import '../../providers/driver_provider/sos_provider.dart';
 import '../../providers/passenger_provider/dashboard_provider.dart';
 import '../../providers/passenger_provider/sos_provider.dart';
 import '../badge/badge.dart';
+import 'dart:io';
 import '../banner/custom_banner.dart';
 import '../bar/custom_bar.dart';
 import '../bottom/driver_button.dart';
@@ -67,10 +68,13 @@ class NoticeBanner extends StatelessWidget {
 /// DRIVER PROFILE CARD
 /// (photo, name, rating, trips, license, bus info, corridor, shift)
 /// =========================================================
+
+
 class DriverProfileCard extends StatelessWidget {
   final String driverName;
   final String driverCode;
   final String photoUrl;
+  final File? localPhotoFile;
   final double rating;
   final int totalTrips;
   final String licenseNo;
@@ -92,6 +96,7 @@ class DriverProfileCard extends StatelessWidget {
     required this.driverName,
     required this.driverCode,
     required this.photoUrl,
+    this.localPhotoFile,
     required this.rating,
     required this.totalTrips,
     required this.licenseNo,
@@ -131,7 +136,9 @@ class DriverProfileCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 28,
-                    backgroundImage: NetworkImage(photoUrl),
+                    backgroundImage: localPhotoFile != null
+                        ? FileImage(localPhotoFile!) as ImageProvider
+                        : NetworkImage(photoUrl),
                   ),
                   Positioned(
                     right: 0,
@@ -386,7 +393,6 @@ class DriverProfileCard extends StatelessWidget {
     );
   }
 }
-
 /// =========================================================
 /// OCCUPANCY CARD
 /// =========================================================

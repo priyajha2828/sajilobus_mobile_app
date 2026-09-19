@@ -1,5 +1,8 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../services/driver_service.dart';
 
@@ -155,10 +158,16 @@ class DriverProfileProvider extends ChangeNotifier {
   bool _isLoggingOut = false;
 
   final DriverService _driverService = DriverService();
+  final ImagePicker _picker = ImagePicker();
+
+  File? _localPhotoFile;
+  bool _isUploadingPhoto = false;
 
   DriverProfileModel get profile => _profile;
   bool get isLoading => _isLoading;
   bool get isLoggingOut => _isLoggingOut;
+  File? get localPhotoFile => _localPhotoFile;
+  bool get isUploadingPhoto => _isUploadingPhoto;
 
   DriverProfileProvider() {
     loadProfile();
@@ -184,6 +193,38 @@ class DriverProfileProvider extends ChangeNotifier {
       debugPrint("Driver profile error: $e");
     } finally {
       _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> pickAndUpdatePhoto({required bool fromCamera}) async {
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: fromCamera ? ImageSource.camera : ImageSource.gallery,
+        imageQuality: 80,
+        maxWidth: 800,
+      );
+      if (picked == null) return;
+
+      _localPhotoFile = File(picked.path);
+      notifyListeners();
+
+      _isUploadingPhoto = true;
+      notifyListeners();
+
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      if (token != null) {
+        // TODO: aafno DriverService ma upload endpoint banaera yaha call garne
+        // final response = await _driverService.uploadProfilePhoto(token, _localPhotoFile!);
+        // if (response.statusCode == 200) {
+        //   _profile = _profile.copyWithPhoto(response.data['photoUrl']);
+        // }
+      }
+    } catch (e) {
+      debugPrint("Error picking/updating photo: $e");
+    } finally {
+      _isUploadingPhoto = false;
       notifyListeners();
     }
   }

@@ -118,13 +118,15 @@ class _Header extends StatelessWidget {
         ),
         Consumer<DriverProfileProvider>(
           builder: (context, driverProfile, _) {
+            final localPhotoFile = driverProfile.localPhotoFile;
             return CircleAvatar(
               radius: 20,
               backgroundColor: const Color(0xFFE5E7EB),
-              backgroundImage: NetworkImage(
-                driverProfile.profile.photoUrl,
-              ),
+              backgroundImage: localPhotoFile != null
+                  ? FileImage(localPhotoFile) as ImageProvider
+                  : NetworkImage(driverProfile.profile.photoUrl),
             );
+
           },
         ),
       ],

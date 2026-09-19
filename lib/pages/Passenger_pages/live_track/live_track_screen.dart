@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:sajilo_bus/routes/app_route.dart';
 
 import '../../../providers/passenger_provider/live_track_provider.dart';
+import '../../../providers/passenger_provider/profile_provider.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/widgets/live_track_widgets.dart';
 
@@ -19,6 +20,7 @@ class LiveTrackScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final track = context.watch<LiveTrackProvider>();
+    final profileProvider = context.watch<ProfileProvider>();
 
     return Scaffold(
       backgroundColor: CustomColor.background(context),
@@ -26,6 +28,7 @@ class LiveTrackScreen extends StatelessWidget {
       appBar: LiveTrackAppBar(
         title: track.screenTitle,
         avatarUrl: track.avatarUrl,
+        localPhotoFile: profileProvider.localPhotoFile,
         onBack: () => track.goBack(context),
         onAvatarTap: track.openProfile,
       ),
