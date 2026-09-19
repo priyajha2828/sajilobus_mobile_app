@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 import '../color/custom_color.dart';
@@ -18,6 +20,7 @@ import '../../providers/passenger_provider/live_track_provider.dart';
 class LiveTrackAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final String avatarUrl;
+  final File? localPhotoFile;
   final VoidCallback? onBack;
   final VoidCallback? onAvatarTap;
 
@@ -25,6 +28,7 @@ class LiveTrackAppBar extends StatelessWidget implements PreferredSizeWidget {
     super.key,
     required this.title,
     required this.avatarUrl,
+    this.localPhotoFile,
     this.onBack,
     this.onAvatarTap,
   });
@@ -82,7 +86,9 @@ class LiveTrackAppBar extends StatelessWidget implements PreferredSizeWidget {
           child: CircleAvatar(
             radius: 19,
             backgroundColor: CustomColor.border(context),
-            backgroundImage: NetworkImage(avatarUrl),
+            backgroundImage: localPhotoFile != null
+                ? FileImage(localPhotoFile!) as ImageProvider
+                : NetworkImage(avatarUrl),
           ),
         ),
         const SizedBox(width: 16),

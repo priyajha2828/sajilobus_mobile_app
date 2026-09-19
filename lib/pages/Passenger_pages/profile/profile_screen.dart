@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -98,12 +100,20 @@ class PassengerProfileScreen extends StatelessWidget {
         ],
       ),
       actions: [
-        CircleAvatar(
-          radius: 18,
-          backgroundColor: CustomColor.iconCircleBg(context),
-          backgroundImage: NetworkImage(
-            context.watch<ProfileProvider>().avatarUrl,
-          ),
+        Builder(
+          builder: (context) {
+            final provider = context.watch<ProfileProvider>();
+            return GestureDetector(
+              onTap: () => _showPhotoOptions(context, provider),
+              child: CircleAvatar(
+                radius: 18,
+                backgroundColor: CustomColor.iconCircleBg(context),
+                backgroundImage: provider.localPhotoFile != null
+                    ? FileImage(provider.localPhotoFile!) as ImageProvider
+                    : NetworkImage(provider.avatarUrl),
+              ),
+            );
+          },
         ),
         const SizedBox(width: 12),
       ],
@@ -115,10 +125,52 @@ class PassengerProfileScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CircleAvatar(
-            radius: 32,
-            backgroundColor: CustomColor.iconCircleBg(context),
-            backgroundImage: NetworkImage(provider.avatarUrl),
+          GestureDetector(
+            onTap: () => _showPhotoOptions(context, provider),
+            child: Stack(
+              clipBehavior: Clip.none,
+              children: [
+                CircleAvatar(
+                  radius: 32,
+                  backgroundColor: CustomColor.iconCircleBg(context),
+                  backgroundImage: provider.localPhotoFile != null
+                      ? FileImage(provider.localPhotoFile!) as ImageProvider
+                      : NetworkImage(provider.avatarUrl),
+                ),
+                if (provider.isUploadingPhoto)
+                  Positioned.fill(
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        color: Colors.black38,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(
+                        child: SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        ),
+                      ),
+                    ),
+                  ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: CustomColor.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: CustomColor.bg_color(context), width: 2),
+                    ),
+                    child: const Icon(Icons.camera_alt_rounded,
+                        size: 12, color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(
@@ -146,6 +198,38 @@ class PassengerProfileScreen extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showPhotoOptions(BuildContext context, ProfileProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(ctx);
+                provider.pickAndUpdatePhoto(fromCamera: true);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(ctx);
+                provider.pickAndUpdatePhoto(fromCamera: false);
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -224,7 +308,7 @@ class PassengerProfileScreen extends StatelessWidget {
                 children: [
                   Text('Current Balance',
                       style:
-                          TextStyle(fontSize: 12, color: CustomColor.transitCardMuted)),
+                      TextStyle(fontSize: 12, color: CustomColor.transitCardMuted)),
                   const SizedBox(height: 4),
                   Text(
                     provider.currentBalance,

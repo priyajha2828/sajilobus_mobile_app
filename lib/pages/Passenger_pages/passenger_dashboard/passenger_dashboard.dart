@@ -216,7 +216,9 @@ class _TopBar extends StatelessWidget {
               return CircleAvatar(
                 radius: 17,
                 backgroundColor: CustomColor.onDarkFaint,
-                backgroundImage: NetworkImage(userProfile.avatarUrl),
+                backgroundImage: userProfile.localPhotoFile != null
+                    ? FileImage(userProfile.localPhotoFile!) as ImageProvider
+                    : NetworkImage(userProfile.avatarUrl),
               );
             },
           ),

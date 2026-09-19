@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/passenger_provider/alert_provider.dart';
+import '../../../providers/passenger_provider/profile_provider.dart';
 import '../../../resources/color/custom_color.dart';
 import '../../../resources/widgets/alert_widgets.dart';
 
@@ -140,9 +141,15 @@ class _AlertsTopBar extends StatelessWidget {
               ),
             ),
           ),
-          const CircleAvatar(
-            radius: 17,
-            child: Icon(Icons.person),
+          Consumer<ProfileProvider>(
+            builder: (context, profileProvider, _) {
+              return CircleAvatar(
+                radius: 17,
+                backgroundImage: profileProvider.localPhotoFile != null
+                    ? FileImage(profileProvider.localPhotoFile!) as ImageProvider
+                    : NetworkImage(profileProvider.avatarUrl),
+              );
+            },
           ),
         ],
       ),

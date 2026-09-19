@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../../providers/driver_provider/profile_provider.dart';
@@ -37,7 +40,7 @@ class DriverProfileScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _ProfileHeader(profile: profile),
+                      _ProfileHeader(profile: profile, provider: provider),
                       const SizedBox(height: 16),
                       _CredentialsSection(profile: profile),
                       const SizedBox(height: 16),
@@ -95,7 +98,8 @@ class DriverProfileScreen extends StatelessWidget {
 
 class _ProfileHeader extends StatelessWidget {
   final dynamic profile;
-  const _ProfileHeader({required this.profile});
+  final DriverProfileProvider provider;
+  const _ProfileHeader({required this.profile, required this.provider});
 
   @override
   Widget build(BuildContext context) {
@@ -107,10 +111,52 @@ class _ProfileHeader extends StatelessWidget {
             alignment: Alignment.bottomCenter,
             clipBehavior: Clip.none,
             children: [
-              CircleAvatar(
-                radius: 44,
-                backgroundColor: CustomColor.border(context),
-                backgroundImage: NetworkImage(profile.photoUrl),
+              GestureDetector(
+                onTap: () => _showPhotoOptions(context, provider),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    CircleAvatar(
+                      radius: 44,
+                      backgroundColor: CustomColor.border(context),
+                      backgroundImage: provider.localPhotoFile != null
+                          ? FileImage(provider.localPhotoFile as File)
+                          : NetworkImage(profile.photoUrl) as ImageProvider,
+                    ),
+                    if (provider.isUploadingPhoto)
+                      Positioned.fill(
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.black38,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ),
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: CustomColor.accentBlue(context),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                              color: CustomColor.card(context), width: 2),
+                        ),
+                        child: const Icon(Icons.camera_alt_rounded,
+                            size: 14, color: Colors.white),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               Positioned(
                 bottom: -10,
@@ -201,8 +247,39 @@ class _ProfileHeader extends StatelessWidget {
       ),
     );
   }
-}
 
+  void _showPhotoOptions(BuildContext context, DriverProfileProvider provider) {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('Take Photo'),
+              onTap: () {
+                Navigator.pop(ctx);
+                provider.pickAndUpdatePhoto(fromCamera: true);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('Choose from Gallery'),
+              onTap: () {
+                Navigator.pop(ctx);
+                provider.pickAndUpdatePhoto(fromCamera: false);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 class _StatDivider extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
