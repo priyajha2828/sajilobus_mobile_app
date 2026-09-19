@@ -548,6 +548,9 @@ class SosHoldButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onTapDown: (_) => onHoldStart(),
+      onTapUp: (_) => onHoldEnd(),
+      onTapCancel: onHoldEnd,
       onLongPressStart: (_) => onHoldStart(),
       onLongPressEnd: (_) => onHoldEnd(),
       onLongPressCancel: onHoldEnd,

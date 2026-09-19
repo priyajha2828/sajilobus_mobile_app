@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:sajilo_bus/config/dio_client.dart';
 /// Stages of the live dispatch lifecycle stepper.
 enum DispatchStage { pending, inProgress, resolved }
@@ -68,6 +69,20 @@ class DispatchInfoRow {
     this.leadingIcon,
   });
 }
+class SosHistoryItem {
+  final int id;
+  final String status;
+  final String message;
+  final String createdAt;
+
+  const SosHistoryItem({
+    required this.id,
+    required this.status,
+    required this.message,
+    required this.createdAt,
+  });
+}
+
 class PassengerSosProvider extends ChangeNotifier {
   // ---------------- Top emergency banner ----------------
   final String bannerTitle = 'Emergency Transit SOS';
@@ -87,7 +102,81 @@ class PassengerSosProvider extends ChangeNotifier {
   final String speedLabel = 'Speed: 38 km/h';
 
   // ---------------- Dispatch lifecycle ----------------
-  final DispatchStage currentStage = DispatchStage.pending;
+  DispatchStage _currentStage = DispatchStage.pending;
+  DispatchStage get currentStage => _currentStage;
+  int? _lastActiveSosId;
+  Timer? _pollingTimer;
+  List<SosHistoryItem> _sosHistory = [];
+  List<SosHistoryItem> get sosHistory => _sosHistory;
+
+  PassengerSosProvider() {
+    fetchLatestSosStatus();
+    _startStatusPolling();
+  }
+
+  void _startStatusPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      fetchLatestSosStatus();
+    });
+  }
+
+  Future<void> fetchLatestSosStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      final options = (token != null && token.isNotEmpty)
+          ? Options(headers: {"Authorization": "Bearer $token"})
+          : null;
+
+      final res = await DioClient.dio.get(
+        "/sos",
+        options: options,
+      );
+
+      if (res.statusCode == 200 && res.data["success"] == true) {
+        final List? alerts = res.data["sosAlerts"];
+        if (alerts != null && alerts.isNotEmpty) {
+          _sosHistory = alerts.map((a) {
+            final int id = a["id"] ?? 0;
+            final String st = a["status"] ?? "PENDING";
+            final String msg = a["message"] ?? "Emergency SOS";
+            final String created = a["createdAt"] != null
+                ? DateTime.tryParse(a["createdAt"].toString())?.toLocal().toString().split('.').first ?? ""
+                : "";
+            return SosHistoryItem(id: id, status: st, message: msg, createdAt: created);
+          }).toList();
+
+          // If we tracked an activated SOS, look up that ID, else take the most recent one
+          Map? targetAlert;
+          if (_lastActiveSosId != null) {
+            targetAlert = alerts.firstWhere(
+              (a) => a["id"] == _lastActiveSosId,
+              orElse: () => alerts.first,
+            );
+          } else {
+            targetAlert = alerts.first;
+          }
+
+          if (targetAlert != null) {
+            final String status = targetAlert["status"] ?? "PENDING";
+            if (status == "RESOLVED") {
+              _currentStage = DispatchStage.resolved;
+              sosActivated = true;
+            } else if (status == "IN_PROGRESS") {
+              _currentStage = DispatchStage.inProgress;
+              sosActivated = true;
+            } else {
+              _currentStage = DispatchStage.pending;
+            }
+          }
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint("Passenger SOS status fetch error: $e");
+    }
+  }
 
   // ---------------- Nature of Emergency ----------------
   final List<EmergencyType> emergencyTypes = const [
@@ -173,18 +262,21 @@ class PassengerSosProvider extends ChangeNotifier {
     sosActivated = true;
     notifyListeners();
 
+    final selectedTypeLabel = emergencyTypes[selectedEmergencyIndex].label;
+    final customMsg = descriptionController.text.trim();
+    final messageText = customMsg.isNotEmpty
+        ? "🚨 EMERGENCY SOS ALERT! [$selectedTypeLabel] $customMsg. Location: Lat 26.4525, Lng 87.2718"
+        : "🚨 EMERGENCY SOS ALERT! [$selectedTypeLabel] I need immediate help! Location: Lat 26.4525, Lng 87.2718";
+
+    String targetPhoneNumber = '100'; // Fallback emergency number
+
+    // 1. Post to Backend (saves to DB and notifies Admin)
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("jwt_token");
 
-      final selectedTypeLabel = emergencyTypes[selectedEmergencyIndex].label;
-      final customMsg = descriptionController.text.trim();
-      final messageText = customMsg.isNotEmpty
-          ? "[$selectedTypeLabel] $customMsg"
-          : "EMERGENCY: $selectedTypeLabel triggered";
-
       if (token != null && token.isNotEmpty) {
-        await DioClient.dio.post(
+        final res = await DioClient.dio.post(
           "/sos",
           data: {
             "latitude": 26.4525,
@@ -193,9 +285,70 @@ class PassengerSosProvider extends ChangeNotifier {
           },
           options: Options(headers: {"Authorization": "Bearer $token"}),
         );
+
+        if (res.statusCode == 200 || res.statusCode == 201) {
+          final sosData = res.data["sos"];
+          if (sosData != null && sosData["id"] != null) {
+            _lastActiveSosId = sosData["id"];
+          }
+          if (sosData != null && sosData["emergencyContacts"] != null) {
+            final List contactsList = sosData["emergencyContacts"];
+            if (contactsList.isNotEmpty) {
+              final firstContact = contactsList.first;
+              if (firstContact["contactNumber"] != null &&
+                  firstContact["contactNumber"].toString().isNotEmpty) {
+                targetPhoneNumber = firstContact["contactNumber"].toString();
+              }
+            }
+          }
+        }
       }
     } catch (e) {
-      debugPrint("Passenger SOS activation error: $e");
+      debugPrint("Passenger SOS backend trigger error: $e");
+    }
+
+    // If targetPhoneNumber was not found from POST /sos, fetch from /sos-contacts
+    if (targetPhoneNumber == '100') {
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final token = prefs.getString("jwt_token");
+        if (token != null && token.isNotEmpty) {
+          final contactRes = await DioClient.dio.get(
+            "/sos-contacts",
+            options: Options(headers: {"Authorization": "Bearer $token"}),
+          );
+          if (contactRes.statusCode == 200 && contactRes.data["success"] == true) {
+            final List? contacts = contactRes.data["contacts"];
+            if (contacts != null && contacts.isNotEmpty) {
+              final firstNumber = contacts.first["contactNumber"];
+              if (firstNumber != null && firstNumber.toString().isNotEmpty) {
+                targetPhoneNumber = firstNumber.toString();
+              }
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint("Error fetching emergency contacts for SMS: $e");
+      }
+    }
+
+    // 2. Open Native SMS Messaging App prefilled with custom message to emergency SOS contact
+    try {
+      final cleanPhone = targetPhoneNumber.replaceAll(' ', '');
+      final Uri smsUri = Uri(
+        scheme: 'sms',
+        path: cleanPhone,
+        queryParameters: <String, String>{
+          'body': messageText,
+        },
+      );
+      if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+      } else {
+        await launchUrl(smsUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint("Native SMS launch error: $e");
     }
   }
 
@@ -209,9 +362,17 @@ class PassengerSosProvider extends ChangeNotifier {
   final String policeHotline = '100';
   final String trafficPoliceLine = '103';
 
-  void callNumber(String number) {
-    // TODO: integrate url_launcher tel: call.
-    notifyListeners();
+  Future<void> callNumber(String number) async {
+    try {
+      final Uri phoneUri = Uri(scheme: 'tel', path: number);
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint("Call launch error: $e");
+    }
   }
 
   // ---------------- Central Transit Dispatch Preview ----------------
@@ -233,6 +394,7 @@ class PassengerSosProvider extends ChangeNotifier {
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _holdTimer?.cancel();
     descriptionController.dispose();
     super.dispose();

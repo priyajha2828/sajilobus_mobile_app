@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:sajilo_bus/config/dio_client.dart';
 
 enum EmergencyType { vehicleFail, collision, medical, security }
@@ -175,16 +177,106 @@ class EmergencyModel {
   }
 }
 
+class DriverSosHistoryItem {
+  final int id;
+  final String status;
+  final String message;
+  final String createdAt;
+
+  const DriverSosHistoryItem({
+    required this.id,
+    required this.status,
+    required this.message,
+    required this.createdAt,
+  });
+}
+
 class EmergencyProvider extends ChangeNotifier {
   EmergencyModel _model = EmergencyModel.mock();
   bool _isLoading = false;
   bool _isBroadcasting = false;
   bool _sosSent = false;
+  Timer? _pollingTimer;
+  List<DriverSosHistoryItem> _sosHistory = [];
 
   EmergencyModel get model => _model;
   bool get isLoading => _isLoading;
   bool get isBroadcasting => _isBroadcasting;
   bool get sosSent => _sosSent;
+  List<DriverSosHistoryItem> get sosHistory => _sosHistory;
+
+  EmergencyProvider() {
+    fetchDriverSosStatus();
+    _startStatusPolling();
+  }
+
+  void _startStatusPolling() {
+    _pollingTimer?.cancel();
+    _pollingTimer = Timer.periodic(const Duration(seconds: 3), (_) {
+      fetchDriverSosStatus();
+    });
+  }
+
+  Future<void> fetchDriverSosStatus() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final token = prefs.getString("jwt_token");
+      final options = (token != null && token.isNotEmpty)
+          ? Options(headers: {"Authorization": "Bearer $token"})
+          : null;
+
+      final res = await DioClient.dio.get(
+        "/sos",
+        options: options,
+      );
+
+      if (res.statusCode == 200 && res.data["success"] == true) {
+        final List? alerts = res.data["sosAlerts"];
+        if (alerts != null && alerts.isNotEmpty) {
+          _sosHistory = alerts.map((a) {
+            final int id = a["id"] ?? 0;
+            final String st = a["status"] ?? "PENDING";
+            final String msg = a["message"] ?? "Emergency Alert";
+            final String created = a["createdAt"] != null
+                ? DateTime.tryParse(a["createdAt"].toString())?.toLocal().toString().split('.').first ?? ""
+                : "";
+            return DriverSosHistoryItem(id: id, status: st, message: msg, createdAt: created);
+          }).toList();
+
+          final firstAlert = alerts.first;
+          final String status = firstAlert["status"] ?? "PENDING";
+          final int alertId = firstAlert["id"] ?? 9114;
+
+          String queueLabel = "Queue: Top #1 ($status)";
+          if (status == "RESOLVED") queueLabel = "RESOLVED by Admin";
+          else if (status == "IN_PROGRESS") queueLabel = "IN PROGRESS • Admin Dispatched";
+
+          _model = EmergencyModel(
+            selectedType: _model.selectedType,
+            typeOptions: _model.typeOptions,
+            telemetry: _model.telemetry,
+            quickLogText: _model.quickLogText,
+            quickLogTags: _model.quickLogTags,
+            isAudioLogging: _model.isAudioLogging,
+            priorityTicket: PriorityTicket(
+              ticketId: "KS-$alertId",
+              timeAgo: _model.priorityTicket.timeAgo,
+              targetLabel: _model.priorityTicket.targetLabel,
+              gpsSync: true,
+              passengersTagged: true,
+              passengerCount: _model.priorityTicket.passengerCount,
+              towAlertSent: true,
+              queueLabel: queueLabel,
+            ),
+            voiceChannels: _model.voiceChannels,
+          );
+          notifyListeners();
+        }
+      }
+    } catch (e) {
+      debugPrint("Driver SOS status fetch error: $e");
+    }
+  }
 
   Future<void> loadData() async {
     _isLoading = true;
@@ -217,13 +309,13 @@ class EmergencyProvider extends ChangeNotifier {
     _isBroadcasting = true;
     notifyListeners();
 
+    final typeLabel = _model.selectedType.name.toUpperCase();
+    final logText = _model.quickLogText;
+    final fullMsg = "🚨 DRIVER EMERGENCY SOS [$typeLabel]: $logText. Bus: ${_model.telemetry.plateNepali}. Coords: ${_model.telemetry.coordinates}";
+
     try {
       final prefs = await SharedPreferences.getInstance();
       final token = prefs.getString("jwt_token");
-
-      final typeLabel = _model.selectedType.name.toUpperCase();
-      final logText = _model.quickLogText;
-      final fullMsg = "DRIVER SOS [$typeLabel]: $logText";
 
       if (token != null && token.isNotEmpty) {
         await DioClient.dio.post(
@@ -238,6 +330,23 @@ class EmergencyProvider extends ChangeNotifier {
       }
     } catch (e) {
       debugPrint("Driver SOS broadcast error: $e");
+    }
+
+    try {
+      final Uri smsUri = Uri(
+        scheme: 'sms',
+        path: '100',
+        queryParameters: <String, String>{
+          'body': fullMsg,
+        },
+      );
+      if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+      } else {
+        await launchUrl(smsUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint("Driver SMS launch error: $e");
     } finally {
       _isBroadcasting = false;
       _sosSent = true;
@@ -245,7 +354,23 @@ class EmergencyProvider extends ChangeNotifier {
     }
   }
 
-  void callChannel(String number) {
-    // integrate url_launcher: launch('tel:$number')
+  Future<void> callChannel(String number) async {
+    try {
+      final cleanNumber = number.replaceAll(RegExp(r'[^\d+]'), '');
+      final Uri phoneUri = Uri(scheme: 'tel', path: cleanNumber);
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+      } else {
+        await launchUrl(phoneUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint("Call channel launch error: $e");
+    }
+  }
+
+  @override
+  void dispose() {
+    _pollingTimer?.cancel();
+    super.dispose();
   }
 }

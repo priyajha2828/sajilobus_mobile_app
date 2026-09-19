@@ -52,6 +52,12 @@ class LiveTrackProvider extends ChangeNotifier {
   StreamSubscription<Position>? _positionSubscription;
   final LocationService _locationService = LocationService();
 
+  String _statusLabel = "ACTIVE";
+  String _nextStopName = "Terminal";
+  String _nextStopStatus = "Approaching";
+  List<RouteMilestone> _milestones = [];
+  String _stopsRemainingText = "0 Stops Remaining";
+
   LatLng get busLocation => _busLocation;
   LatLng get passengerLocation => _passengerLocation;
   double get distanceKm => _distanceKm;
@@ -108,6 +114,13 @@ class LiveTrackProvider extends ChangeNotifier {
             _routeTo = trip["route"]?["endPoint"] ?? _routeTo;
             _totalSeats = trip["bus"]?["capacity"] ?? 40;
 
+            // Status updates dynamically based on endedAt / status
+            if (trip["endedAt"] != null) {
+              _statusLabel = "COMPLETED";
+            } else {
+              _statusLabel = "ACTIVE";
+            }
+
             final latestPing = (trip["tripHistory"] as List?)?.firstOrNull;
             if (latestPing != null) {
               final double? lat = double.tryParse(latestPing["latitude"].toString());
@@ -115,6 +128,88 @@ class LiveTrackProvider extends ChangeNotifier {
               if (lat != null && lng != null) {
                 _busLocation = LatLng(lat, lng);
                 _updateDistanceAndEta();
+              }
+            }
+
+            // Stop Events & Route details calculation
+            final routeDetails = (trip["route"]?["routeDetails"] as List?) ?? [];
+            final stopEvents = (trip["stopEvents"] as List?) ?? [];
+
+            // Calculate occupancy count from boarding/alighting
+            int occupancy = 0;
+            for (var event in stopEvents) {
+              final b = (event["boardingCount"] as num?)?.toInt() ?? 0;
+              final a = (event["alightingCount"] as num?)?.toInt() ?? 0;
+              occupancy += (b - a);
+            }
+            if (occupancy < 0) occupancy = 0;
+            _occupiedSeats = occupancy;
+
+            // Build dynamic milestones and next stop
+            final Set<int> reachedStopIds = {};
+            final Set<int> skippedStopIds = {};
+            for (var event in stopEvents) {
+              final int? stopId = event["busStopId"] as int?;
+              final String? eventType = event["eventType"] as String?;
+              if (stopId != null) {
+                if (eventType == "REACHED") reachedStopIds.add(stopId);
+                if (eventType == "SKIPPED") skippedStopIds.add(stopId);
+              }
+            }
+
+            List<RouteMilestone> newMilestones = [];
+            int upcomingCount = 0;
+            String? currentOrNextStop;
+
+            for (int i = 0; i < routeDetails.length; i++) {
+              final rd = routeDetails[i];
+              final busStop = rd["busStop"];
+              final stopId = busStop?["id"] as int?;
+              final stopName = busStop?["stopName"] ?? "Stop #${i + 1}";
+
+              MilestoneState state = MilestoneState.scheduled;
+              String subtitle = "Scheduled";
+              String trailing = "";
+
+              if (stopId != null && reachedStopIds.contains(stopId)) {
+                state = MilestoneState.passed;
+                subtitle = "Passed";
+              } else if (stopId != null && skippedStopIds.contains(stopId)) {
+                state = MilestoneState.passed;
+                subtitle = "Skipped";
+              } else if (currentOrNextStop == null) {
+                state = MilestoneState.current;
+                subtitle = "Pickup / Current Stop";
+                trailing = "NOW";
+                currentOrNextStop = stopName;
+                upcomingCount++;
+              } else if (i == routeDetails.length - 1) {
+                state = MilestoneState.destination;
+                subtitle = "Destination";
+                upcomingCount++;
+              } else {
+                state = MilestoneState.scheduled;
+                subtitle = "Scheduled";
+                upcomingCount++;
+              }
+
+              newMilestones.add(RouteMilestone(
+                title: stopName,
+                subtitle: subtitle,
+                trailing: trailing,
+                state: state,
+              ));
+            }
+
+            if (newMilestones.isNotEmpty) {
+              _milestones = newMilestones;
+              _stopsRemainingText = "$upcomingCount Stops Remaining";
+              if (currentOrNextStop != null) {
+                _nextStopName = currentOrNextStop;
+                _nextStopStatus = "Approaching";
+              } else {
+                _nextStopName = _routeTo;
+                _nextStopStatus = "Arrived / Final";
               }
             }
           }
@@ -160,7 +255,7 @@ class LiveTrackProvider extends ChangeNotifier {
   // ---------- Vehicle header ----------
   String get busNumber => _busNumber;
   String get serviceType => "Fast Express";
-  String get statusLabel => "ACTIVE";
+  String get statusLabel => _statusLabel;
   String get plateNumber => _busNumber;
   String get driverName => _driverName;
 
@@ -175,39 +270,27 @@ class LiveTrackProvider extends ChangeNotifier {
 
   int get occupiedSeats => _occupiedSeats;
   int get totalSeats => _totalSeats;
-  double get crowdRatio => occupiedSeats / totalSeats;
+  double get crowdRatio => totalSeats > 0 ? (occupiedSeats / totalSeats).clamp(0.0, 1.0) : 0.0;
 
-  String get nextStopName => "Tankisinuwari";
-  String get nextStopStatus => "Approaching";
+  String get nextStopName => _nextStopName;
+  String get nextStopStatus => _nextStopStatus;
 
   // ---------- Route milestones ----------
   String get milestonesTitle => "ROUTE MILESTONES";
-  String get stopsRemaining => "4 Stops Remaining";
+  String get stopsRemaining => _stopsRemainingText;
 
-  final List<RouteMilestone> milestones = const [
+  List<RouteMilestone> get milestones => _milestones.isNotEmpty ? _milestones : const [
     RouteMilestone(
-      title: "Bargachhi Hub",
-      subtitle: "Passed • 09:37 AM",
+      title: "Origin Terminal",
+      subtitle: "Passed",
       trailing: "",
       state: MilestoneState.passed,
     ),
     RouteMilestone(
-      title: "Tankisinuwari",
-      subtitle: "In ~2 mins • Pickup stop",
+      title: "Current Stop",
+      subtitle: "In Transit",
       trailing: "NOW",
       state: MilestoneState.current,
-    ),
-    RouteMilestone(
-      title: "Duhabi Chowk",
-      subtitle: "Scheduled • 09:54 AM",
-      trailing: "11m",
-      state: MilestoneState.scheduled,
-    ),
-    RouteMilestone(
-      title: "Itahari Central Bus Terminal",
-      subtitle: "Destination • 10:15 AM",
-      trailing: "32m",
-      state: MilestoneState.destination,
     ),
   ];
 
