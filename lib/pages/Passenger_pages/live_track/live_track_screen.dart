@@ -129,25 +129,7 @@ class LiveTrackScreen extends StatelessWidget {
                     // ---- Actions ----
                     Row(
                       children: [
-                        Expanded(
-                          child: LiveActionButton(
-                            icon: Icons.notifications_active_outlined,
-                            label: "Alert",
-                            background: CustomColor.buttonSoft(context),
-                            foreground: CustomColor.accentBlue1,
-                            onTap: track.setAlert,
-                          ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: LiveActionButton(
-                            icon: Icons.my_location,
-                            label: "Share",
-                            background: CustomColor.buttonSoft(context),
-                            foreground: CustomColor.accentBlue1,
-                            onTap: track.shareTrip,
-                          ),
-                        ),
+
                         const SizedBox(width: 10),
                         Expanded(
                           child: LiveActionButton(

@@ -25,9 +25,6 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // Kept for future wiring to real backend data.
-    // final provider = context.watch<DriverDashboardProvider>();
-
     return Consumer2<DriverDashboardProvider, DriverProfileProvider>(
       builder: (context, dashProvider, profileProvider, _) {
         final profile = profileProvider.profile;
@@ -188,204 +185,171 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       Expanded(
                         child: ToggleStatusCard(
                           title: "DRIVER STATE",
-                          value: "ONLINE",
-                          subtitle: "Ready for dispatch",
+                          value: isOnline ? "ONLINE" : "OFFLINE",
+                          subtitle: isOnline ? "Ready for dispatch" : "Driver offline",
                           footerIcon: Icons.check_circle,
-                          footerText: "Auto-dispatch ON",
-                          isOn: driverOnline,
-                          onChanged: (v) => setState(() => driverOnline = v),
+                          footerText: isOnline ? "Auto-dispatch ON" : "Auto-dispatch OFF",
+                          isOn: isOnline,
+                          onChanged: (_) => dashProvider.toggleDriverState(),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ToggleStatusCard(
-                      title: "DRIVER STATE",
-                      value: isOnline ? "ONLINE" : "OFFLINE",
-                      subtitle: isOnline ? "Ready for dispatch" : "Driver offline",
-                      footerIcon: Icons.check_circle,
-                      footerText: isOnline ? "Auto-dispatch ON" : "Auto-dispatch OFF",
-                      isOn: isOnline,
-                      onChanged: (_) => dashProvider.toggleDriverState(),
-                    ),
+
+                  const SizedBox(height: 12),
+
+                  // ---------------- OCCUPANCY / SPEED ----------------
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OccupancyCard(
+                          occupied: dashProvider.occupiedSeats,
+                          capacity: dashProvider.capacity,
+                          note: dashProvider.loadPercentageNote,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: LiveSpeedCard(
+                          speed: dashProvider.liveSpeedKmh,
+                          direction: dashProvider.liveDirection,
+                          location: dashProvider.liveLocation,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
 
-              const SizedBox(height: 12),
+                  const SizedBox(height: 20),
 
-              // ---------------- OCCUPANCY / SPEED ----------------
-              Row(
-                children: [
-                  Expanded(
-                    child: OccupancyCard(
-                      occupied: dashProvider.occupiedSeats,
-                      capacity: dashProvider.capacity,
-                      note: dashProvider.loadPercentageNote,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: LiveSpeedCard(
-                      speed: dashProvider.liveSpeedKmh,
-                      direction: dashProvider.liveDirection,
-                      location: dashProvider.liveLocation,
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // ---------------- ACTIVE TRIP CARD ----------------
-              ActiveTripCard(
-                tripId: dashProvider.activeTripId,
-                stopName: dashProvider.nextStopName,
-                eta: dashProvider.etaText,
-                distanceRemaining: dashProvider.distanceRemainingText,
-                onViewMap: () {
-                  Navigator.pushNamed(context, AppRoute.start_trip);
-                },
-                onTripEnd: () {
-                  _showEndTripConfirmationDialog(context, dashProvider);
-                },
-              ),
-
-              const SizedBox(height: 24),
-
-              // ---------------- TRANSIT COMMAND ----------------
-              Row(
-                children: [
-                  Text(
-                    "Transit Command",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: CustomColor.textPrimary(context),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text(
-                    "6 Shortcuts",
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: CustomColor.textSecondary(context),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 12),
-
-              GridView.count(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                crossAxisCount: 3,
-                childAspectRatio: .95,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-                children: [
-                  CommandCard(
-                    icon: Icons.play_arrow,
-                    title: "Start Trip",
-                    iconColor: Colors.green,
-                    onTap: () {
+                  // ---------------- ACTIVE TRIP CARD ----------------
+                  ActiveTripCard(
+                    tripId: dashProvider.activeTripId,
+                    stopName: dashProvider.nextStopName,
+                    eta: dashProvider.etaText,
+                    distanceRemaining: dashProvider.distanceRemainingText,
+                    onViewMap: () {
                       Navigator.pushNamed(context, AppRoute.start_trip);
                     },
-                  ),
-                  CommandCard(
-                    icon: Icons.stop,
-                    title: "End Trip",
-                    iconColor: Colors.orange,
-                    onTap: () {
+                    onTripEnd: () {
                       _showEndTripConfirmationDialog(context, dashProvider);
                     },
                   ),
-                  CommandCard(
-                    icon: Icons.location_on,
-                    title: "Stops Hub",
-                    iconColor: Colors.blue,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoute.stop_management);
-                    },
+
+                  const SizedBox(height: 24),
+
+                  // ---------------- TRANSIT COMMAND ----------------
+                  Row(
+                    children: [
+                      Text(
+                        "Transit Command",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: CustomColor.textPrimary(context),
+                        ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        "6 Shortcuts",
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: CustomColor.textSecondary(context),
+                        ),
+                      ),
+                    ],
                   ),
-                  CommandCard(
-                    icon: Icons.sos,
-                    title: "SOS Alert",
-                    iconColor: Colors.red,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoute.sos);
-                    },
+
+                  const SizedBox(height: 12),
+
+                  GridView.count(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    crossAxisCount: 3,
+                    childAspectRatio: .95,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    children: [
+                      CommandCard(
+                        icon: Icons.play_arrow,
+                        title: "Start Trip",
+                        iconColor: Colors.green,
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoute.start_trip);
+                        },
+                      ),
+                      CommandCard(
+                        icon: Icons.stop,
+                        title: "End Trip",
+                        iconColor: Colors.orange,
+                        onTap: () {
+                          _showEndTripConfirmationDialog(context, dashProvider);
+                        },
+                      ),
+                      CommandCard(
+                        icon: Icons.location_on,
+                        title: "Stops Hub",
+                        iconColor: Colors.blue,
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoute.stop_management);
+                        },
+                      ),
+                      CommandCard(
+                        icon: Icons.sos,
+                        title: "SOS Alert",
+                        iconColor: Colors.red,
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoute.sos);
+                        },
+                      ),
+                      CommandCard(
+                        icon: Icons.build,
+                        title: "Report Issue",
+                        iconColor: Colors.deepOrange,
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoute.reportissue);
+                        },
+                      ),
+                      CommandCard(
+                        icon: Icons.history,
+                        title: "Trip Logs",
+                        iconColor: Colors.blueGrey,
+                        onTap: () {
+                          Navigator.pushNamed(context, AppRoute.triphistory);
+                        },
+                      ),
+                    ],
                   ),
-                  CommandCard(
-                    icon: Icons.build,
-                    title: "Report Issue",
-                    iconColor: Colors.deepOrange,
-                    onTap: () {
-                      Navigator.pushNamed(context, AppRoute.reportissue);
-                    },
+
+                  const SizedBox(height: 20),
+
+                  // ---------------- CORRIDOR MAP ----------------
+                  CorridorMapCard(
+                    title: "Koshi Corridor Elevation & Traffic",
+                    trafficStatus: "Smooth Flow",
+                    liveLagText: "0.8s lag",
+                    totalDistanceText: "${profile.routeFrom} → ${profile.routeTo}",
+                    stops: dashProvider.stops.map((st) {
+                      return RouteStopPoint(
+                        name: st["name"] ?? "Stop",
+                        time: st["time"] ?? "Scheduled",
+                        icon: Icons.location_on,
+                        color: Colors.blue,
+                      );
+                    }).toList(),
                   ),
-                  CommandCard(
-                    icon: Icons.history,
-                    title: "Trip Logs",
-                    iconColor: Colors.blueGrey,
-                    onTap: () {
+
+                  const SizedBox(height: 16),
+
+                  // ---------------- TICKETING SYNC ----------------
+                  TicketingSyncCard(
+                    title: "Digital Ticketing Sync",
+                    eTickets: dashProvider.eTickets,
+                    cashBoardings: dashProvider.cashBoardings,
+                    onManifest: () {
                       Navigator.pushNamed(context, AppRoute.triphistory);
                     },
                   ),
                 ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // ---------------- CORRIDOR MAP ----------------
-              CorridorMapCard(
-                title: "Koshi Corridor Elevation & Traffic",
-                trafficStatus: "Smooth Flow",
-                liveLagText: "0.8s lag",
-                totalDistanceText: "${profile.routeFrom} → ${profile.routeTo}",
-                stops: dashProvider.stops.map((st) {
-                  return RouteStopPoint(
-                    name: st["name"] ?? "Stop",
-                    time: st["time"] ?? "Scheduled",
-                    icon: Icons.location_on,
-                    color: Colors.blue,
-                  );
-                }).toList(),
-              ),
-
-              const SizedBox(height: 16),
-
-              // ---------------- TICKETING SYNC ----------------
-              TicketingSyncCard(
-                title: "Digital Ticketing Sync",
-                eTickets: dashProvider.eTickets,
-                cashBoardings: dashProvider.cashBoardings,
-                onManifest: () {
-                  Navigator.pushNamed(context, AppRoute.triphistory);
-                },
-              ),
-            ],
-          ),
-        ),
-      ),
-
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.red,
-        onPressed: () {
-          Navigator.pushNamed(context, AppRoute.sos);
-        },
-        child: const Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.warning_amber_rounded, size: 18, color: Colors.white),
-            Text(
-              "SOS",
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 9,
-                fontWeight: FontWeight.bold,
               ),
             ),
           ),
@@ -409,13 +373,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ],
             ),
           ),
-
         );
       },
-      );
-    },
-  );
- }
+    );
+  }
 
   void _showEndTripConfirmationDialog(BuildContext context, DriverDashboardProvider dashProvider) {
     showDialog(
