@@ -186,30 +186,30 @@ class _TopBar extends StatelessWidget {
               ],
             ),
           ),
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              InkWell(
-                onTap: () =>
-                    context.read<TransitHomeProvider>().openNotifications(),
-                child: Icon(Icons.notifications_none_rounded,
-                    size: 24, color: CustomColor.textPrimary(context)),
-              ),
-              if (provider.notificationCount > 0)
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Container(
-                    width: 9,
-                    height: 9,
-                    decoration: const BoxDecoration(
-                      color: CustomColor.countBadgeBg,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          // Stack(
+          //   clipBehavior: Clip.none,
+          //   children: [
+          //     InkWell(
+          //       onTap: () =>
+          //           context.read<TransitHomeProvider>().openNotifications(),
+          //       child: Icon(Icons.notifications_none_rounded,
+          //           size: 24, color: CustomColor.textPrimary(context)),
+          //     ),
+          //     if (provider.notificationCount > 0)
+          //       Positioned(
+          //         top: -2,
+          //         right: -2,
+          //         child: Container(
+          //           width: 9,
+          //           height: 9,
+          //           decoration: const BoxDecoration(
+          //             color: CustomColor.countBadgeBg,
+          //             shape: BoxShape.circle,
+          //           ),
+          //         ),
+          //       ),
+          //   ],
+          // ),
           const SizedBox(width: 14),
           Consumer<ProfileProvider>(
             builder: (context, userProfile, _) {
